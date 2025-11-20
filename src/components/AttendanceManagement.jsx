@@ -81,12 +81,10 @@ const normalizeAttendanceData = (data) => {
 
 // Filter Configuration
 const filterConfig = {
-  departments: ['All', 'Sales', 'Marketing', 'Engineering', 'HR', 'Finance', 'Operations'],
+  departments: ['All', 'Sales', 'Production', 'HR', 'Operations'],
   statuses: ['All', 'Present', 'Active', 'Late', 'Absent', 'Remote'],
-  locations: ['All', 'Office', 'Remote', 'Unknown'],
-  devices: ['All', 'Desktop', 'Laptop', 'Mobile', 'Tablet', 'Unknown'],
   sessionQualities: ['All', 'Excellent', 'Good', 'Average', 'Poor', 'Unknown'],
-  verificationMethods: ['All', 'Manual', 'Mobile App', 'Web Portal', 'Biometric', 'None'],
+ 
   timeRanges: [
     'All Time',
     'Today',
@@ -197,7 +195,7 @@ const EnhancedAttendancePieChart = ({ data }) => {
   }, [data, enhancedStats, total]);
 
   return (
-    <div className="bg-gradient-to-br from-white to-blue-25 rounded-3xl shadow-xl p-6 border border-blue-100 max-w-4xl mx-auto">
+    <div className="bg-gradient-to-br from-white to-blue-25 rounded-3xl shadow-xl p-6 border border-blue-100">
       {/* HEADER */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
         <h4 className="text-xl font-bold text-gray-900 flex items-center gap-3">
@@ -210,7 +208,7 @@ const EnhancedAttendancePieChart = ({ data }) => {
         {/* FILTER */}
         <select className="px-4 py-2 text-sm border rounded-xl border-blue-200 bg-white text-gray-700 hover:bg-blue-50 transition shadow-sm">
           <option value="all">All Departments</option>
-          <option value="engineering">Engineering</option>
+          <option value="Production">Production</option>
           <option value="sales">Sales</option>
           <option value="hr">HR</option>
         </select>
@@ -229,57 +227,6 @@ const EnhancedAttendancePieChart = ({ data }) => {
             </div>
           </div>
         </div>
-      </div>
-
-      {/* STATS */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
-        {Object.entries(enhancedStats).map(([status, count]) =>
-          count > 0 ? (
-            <div
-              key={status}
-              className="flex justify-between items-center p-4 rounded-xl bg-white shadow-md border border-blue-100 hover:shadow-lg transition-all duration-300 hover:scale-105"
-            >
-              <div className="flex items-center gap-3">
-                <span
-                  className="w-5 h-5 rounded-full shadow-sm"
-                  style={{ 
-                    backgroundColor: 
-                      status === 'present' ? '#10B981' :
-                      status === 'active' ? '#3B82F6' :
-                      status === 'late' ? '#F59E0B' :
-                      status === 'absent' ? '#EF4444' : '#8B5CF6'
-                  }}
-                />
-                <span className="font-semibold text-gray-900 capitalize">
-                  {status === 'present' ? 'Present' :
-                   status === 'active' ? 'Active' :
-                   status === 'late' ? 'Late' :
-                   status === 'absent' ? 'Absent' : 'Remote'}
-                </span>
-              </div>
-              <div className="text-right">
-                <div className="font-bold text-gray-900 text-lg">{count}</div>
-                <div className="text-sm text-gray-500">
-                  {total > 0 ? Math.round((count / total) * 100) : 0}%
-                </div>
-              </div>
-            </div>
-          ) : null
-        )}
-      </div>
-
-      {/* INSIGHT */}
-      <div className="p-4 rounded-2xl bg-gradient-to-r from-blue-100 to-blue-100 border border-blue-200 shadow-inner">
-        <p className="text-blue-800 font-semibold text-sm">
-          <span className="font-bold">Insight:</span>{" "}
-          {enhancedStats.present + enhancedStats.active} employees (
-          {total > 0
-            ? Math.round(
-                ((enhancedStats.present + enhancedStats.active) / total) * 100
-              )
-            : 0}
-          %) are currently working
-        </p>
       </div>
     </div>
   );
@@ -391,7 +338,7 @@ const DepartmentPerformanceChart = ({ data }) => {
       
       // Sample department data
       const departmentData = {
-        labels: ['Sales', 'Marketing', 'Engineering', 'HR', 'Finance'],
+        labels: ['Sales', 'Production', 'HR',],
         datasets: [
           {
             label: 'Productivity Score',
@@ -550,112 +497,6 @@ const LocationDistributionChart = ({ data }) => {
     </div>
   );
 };
-
-// Advanced Filters Component
-function AdvancedFilters({ filters, onFiltersChange, onClearAll }) {
-  const [isExpanded, setIsExpanded] = useState(false);
-
-  const handleFilterChange = (filterType, value) => {
-    onFiltersChange({
-      ...filters,
-      [filterType]: value
-    });
-  };
-
-  const activeFilterCount = Object.values(filters).reduce((count, value) => {
-    if (Array.isArray(value)) {
-      return count + (value.length > 0 ? 1 : 0);
-    }
-    return count + (value && value !== 'All' && value !== '' ? 1 : 0);
-  }, 0);
-
-  return (
-    <div className="bg-gradient-to-br from-white to-blue-25 rounded-3xl border border-blue-100 shadow-lg mb-8">
-      {/* Filters Header */}
-      <div className="flex items-center gap-3 p-6 border-b border-blue-100">
-        <div className="flex items-center gap-2 bg-gradient-to-r from-blue-500 to-blue-600 text-white p-2 rounded-xl">
-          <SlidersHorizontal className="h-5 w-5" />
-          <h3 className="font-bold text-white">Filters</h3>
-        </div>
-      </div>
-
-      {/* Filters */}
-      <div className="p-6">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          {/* Department */}
-          <div>
-            <label className="block text-sm font-semibold text-gray-800 mb-3">
-              Department
-            </label>
-            <select
-              value={filters.department || 'All'}
-              onChange={(e) => handleFilterChange('department', e.target.value)}
-              className="w-full px-4 py-3 border border-blue-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white shadow-sm transition-all duration-200"
-            >
-              {filterConfig.departments.map((dept) => (
-                <option key={dept} value={dept}>
-                  {dept}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          {/* Break Status */}
-          <div>
-            <label className="block text-sm font-semibold text-gray-800 mb-3">
-              Break Status
-            </label>
-            <select
-              value={filters.breakStatus || 'All'}
-              onChange={(e) => handleFilterChange('breakStatus', e.target.value)}
-              className="w-full px-4 py-3 border border-blue-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white shadow-sm transition-all duration-200"
-            >
-              <option value="All">All</option>
-              <option value="On Break">On Break</option>
-              <option value="Not On Break">Not On Break</option>
-            </select>
-          </div>
-
-          {/* Status */}
-          <div>
-            <label className="block text-sm font-semibold text-gray-800 mb-3">
-              Status
-            </label>
-            <select
-              value={filters.status || 'All'}
-              onChange={(e) => handleFilterChange('status', e.target.value)}
-              className="w-full px-4 py-3 border border-blue-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white shadow-sm transition-all duration-200"
-            >
-              {filterConfig.statuses.map((status) => (
-                <option key={status} value={status}>
-                  {status}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          {/* Time */}
-          <div>
-            <label className="block text-sm font-semibold text-gray-800 mb-3">
-              Time
-            </label>
-            <select
-              value={filters.timeRange || 'All Time'}
-              onChange={(e) => handleFilterChange('timeRange', e.target.value)}
-              className="w-full px-4 py-3 border border-blue-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white shadow-sm transition-all duration-200"
-            >
-              {filterConfig.timeRanges.map((range) => (
-                <option key={range} value={range}>
-                  {range}
-                </option>
-              ))}
-            </select>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
 
 // Filter Chip Component
 function FilterChip({ label, onRemove }) {
@@ -835,34 +676,12 @@ function EnhancedEmployeeDetailModal({ employee, onClose, attendanceData }) {
     recordsWithAlerts: filteredRecords.filter(record => record.alerts && record.alerts.length > 0).length
   };
 
-  const totalHours = safeEmployee.hours;
-  const totalBreaks = safeEmployee.breaks.reduce((sum, b) => sum + (b.duration || 0), 0);
-  const productiveHours = totalHours - (totalBreaks / 60);
-  
-  // Safe calculation for focus score
-  const focusSessions = safeEmployee.focusSessions;
-  const focusScore = focusSessions.length > 0 
-    ? focusSessions.reduce((sum, session) => sum + (session.score || 0), 0) / focusSessions.length 
-    : 0;
-
   // Handle filter changes
   const handleFilterChange = (filterType, value) => {
     setFilters(prev => ({
       ...prev,
       [filterType]: value
     }));
-  };
-
-  // Clear all filters
-  const clearFilters = () => {
-    setFilters({
-      timeRange: 'All Time',
-      status: 'All',
-      leaveType: 'All',
-      minProductivity: 0,
-      maxProductivity: 100,
-      hasAlerts: 'All'
-    });
   };
 
   // Analytics Cards Component
@@ -901,309 +720,282 @@ function EnhancedEmployeeDetailModal({ employee, onClose, attendanceData }) {
 
   return (
     <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-      <div className="bg-gradient-to-br from-white to-blue-25 rounded-3xl w-full max-w-6xl max-h-[95vh] overflow-y-auto shadow-2xl border border-blue-100">
+  <div className="bg-white rounded-3xl w-full max-w-6xl shadow-2xl border border-blue-100 h-[85vh] flex flex-col">
 
-        {/* HEADER */}
-        <div className="flex justify-between items-center p-8 border-b border-blue-100 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-t-3xl">
-          <div>
-            <h3 className="text-2xl font-bold">Employee Performance Report</h3>
-            <p className="text-blue-100 mt-2 text-sm">
-              {safeEmployee.employee.name} • {safeEmployee.employee.department} • 
-              Showing {analytics.filteredRecords} of {analytics.totalRecords} records
-            </p>
-          </div>
+  {/* HEADER */}
+  <div className="flex-shrink-0 flex justify-between items-center px-8 py-6 border-b border-gray-200 ">
+    <div>
+      <div className="flex items-baseline gap-3">
+        <h2 className="text-2xl font-bold text-gray-900">{safeEmployee.employee.name}</h2>
+        <span className="text-lg font-medium text-blue-600">{safeEmployee.employee.department}</span>
+      </div>
+      <p className="text-gray-600 mt-2 text-sm">
+        Performance Report • Showing {analytics.filteredRecords} of {analytics.totalRecords} records
+      </p>
+    </div>
 
-          <button onClick={onClose} className="p-3 hover:bg-white/20 rounded-2xl transition-all duration-200">
-            <X className="h-6 w-6" />
-          </button>
-        </div>
+    <button 
+      onClick={onClose} 
+      className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-all duration-200"
+    >
+      <X className="h-5 w-5" />
+    </button>
+  </div>
 
-        {/* FILTERS SECTION */}
-        <div className="p-8 border-b border-blue-100 bg-white">
-          <div className="flex justify-between items-center mb-6">
-            <h4 className="font-bold text-gray-900 flex items-center gap-3 text-lg">
-              <div className="bg-gradient-to-r from-blue-500 to-blue-600 p-2 rounded-xl">
-                <Filter className="h-5 w-5 text-white" />
-              </div>
-              Filter Analytics
-              {activeFilterCount > 0 && (
-                <span className="bg-gradient-to-r from-emerald-400 to-cyan-500 text-white text-sm px-3 py-1 rounded-full font-medium">
-                  {activeFilterCount} active
-                </span>
-              )}
-            </h4>
-            {activeFilterCount > 0 && (
-              <button 
-                onClick={clearFilters}
-                className="text-sm text-blue-600 hover:text-blue-800 flex items-center gap-2 bg-blue-50 px-4 py-2 rounded-xl transition-all duration-200 hover:bg-blue-100"
-              >
-                <RefreshCw className="h-4 w-4" />
-                Clear Filters
-              </button>
-            )}
-          </div>
+  {/* FILTERS SECTION - No scroll */}
+  <div className="flex-shrink-0 p-8 border-b border-blue-100 bg-white">
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      {/* Time Range Filter */}
+      <div>
+        <label className="block text-sm font-semibold text-gray-800 mb-3">
+          Time Range
+        </label>
+        <select
+          value={filters.timeRange}
+          onChange={(e) => handleFilterChange('timeRange', e.target.value)}
+          className="w-full px-4 py-3 border border-blue-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white shadow-sm transition-all duration-200"
+        >
+          {filterConfig.timeRanges.map(range => (
+            <option key={range} value={range}>{range}</option>
+          ))}
+        </select>
+      </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {/* Time Range Filter */}
+      {/* Status Filter */}
+      <div>
+        <label className="block text-sm font-semibold text-gray-800 mb-3">
+          Status
+        </label>
+        <select
+          value={filters.status}
+          onChange={(e) => handleFilterChange('status', e.target.value)}
+          className="w-full px-4 py-3 border border-blue-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white shadow-sm transition-all duration-200"
+        >
+          {filterConfig.statuses.map(status => (
+            <option key={status} value={status}>{status}</option>
+          ))}
+        </select>
+      </div>
+
+      {/* Leave Type Filter */}
+      <div>
+        <label className="block text-sm font-semibold text-gray-800 mb-3">
+          Leave Type
+        </label>
+        <select
+          value={filters.leaveType}
+          onChange={(e) => handleFilterChange('leaveType', e.target.value)}
+          className="w-full px-4 py-3 border border-blue-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white shadow-sm transition-all duration-200"
+        >
+          {filterConfig.leaveTypes.map(type => (
+            <option key={type} value={type}>{type}</option>
+          ))}
+        </select>
+      </div>
+
+      {/* Alerts Filter */}
+      <div>
+        <label className="block text-sm font-semibold text-gray-800 mb-3">
+          Alerts
+        </label>
+        <select
+          value={filters.hasAlerts}
+          onChange={(e) => handleFilterChange('hasAlerts', e.target.value)}
+          className="w-full px-4 py-3 border border-blue-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white shadow-sm transition-all duration-200"
+        >
+          <option value="All">All Records</option>
+          <option value="With Alerts">With Alerts Only</option>
+          <option value="Without Alerts">Without Alerts</option>
+        </select>
+      </div>
+    </div>
+
+    {/* Active Filters Display */}
+    {activeFilterCount > 0 && (
+      <div className="mt-6 flex items-center gap-2 flex-wrap">
+        <span className="text-sm font-semibold text-gray-800">Active Filters:</span>
+        {filters.timeRange !== 'All Time' && (
+          <FilterChip
+            label={`Time: ${filters.timeRange}`}
+            onRemove={() => handleFilterChange('timeRange', 'All Time')}
+          />
+        )}
+        {filters.status !== 'All' && (
+          <FilterChip
+            label={`Status: ${filters.status}`}
+            onRemove={() => handleFilterChange('status', 'All')}
+          />
+        )}
+        {filters.leaveType !== 'All' && (
+          <FilterChip
+            label={`Leave: ${filters.leaveType}`}
+            onRemove={() => handleFilterChange('leaveType', 'All')}
+          />
+        )}
+        {filters.hasAlerts !== 'All' && (
+          <FilterChip
+            label={`Alerts: ${filters.hasAlerts}`}
+            onRemove={() => handleFilterChange('hasAlerts', 'All')}
+          />
+        )}
+        {(filters.minProductivity > 0 || filters.maxProductivity < 100) && (
+          <FilterChip
+            label={`Productivity: ${filters.minProductivity}%-${filters.maxProductivity}%`}
+            onRemove={() => {
+              handleFilterChange('minProductivity', 0);
+              handleFilterChange('maxProductivity', 100);
+            }}
+          />
+        )}
+      </div>
+    )}
+  </div>
+
+  {/* CONTENT AREA - Scrollable */}
+  <div className="flex-1 p-8 bg-white space-y-8 overflow-y-auto">
+    {/* TOP METRICS HEADER */}
+    <section>
+      <div className="bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl p-6 text-white shadow-xl mb-8">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-4">
+            <div className="bg-white/20 p-3 rounded-xl">
+              <ClockIcon className="h-6 w-6 text-white" />
+            </div>
             <div>
-              <label className="block text-sm font-semibold text-gray-800 mb-3">
-                Time Range
-              </label>
-              <select
-                value={filters.timeRange}
-                onChange={(e) => handleFilterChange('timeRange', e.target.value)}
-                className="w-full px-4 py-3 border border-blue-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white shadow-sm transition-all duration-200"
-              >
-                {filterConfig.timeRanges.map(range => (
-                  <option key={range} value={range}>{range}</option>
-                ))}
-              </select>
-            </div>
-
-            {/* Status Filter */}
-            <div>
-              <label className="block text-sm font-semibold text-gray-800 mb-3">
-                Status
-              </label>
-              <select
-                value={filters.status}
-                onChange={(e) => handleFilterChange('status', e.target.value)}
-                className="w-full px-4 py-3 border border-blue-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white shadow-sm transition-all duration-200"
-              >
-                {filterConfig.statuses.map(status => (
-                  <option key={status} value={status}>{status}</option>
-                ))}
-              </select>
-            </div>
-
-            {/* Leave Type Filter */}
-            <div>
-              <label className="block text-sm font-semibold text-gray-800 mb-3">
-                Leave Type
-              </label>
-              <select
-                value={filters.leaveType}
-                onChange={(e) => handleFilterChange('leaveType', e.target.value)}
-                className="w-full px-4 py-3 border border-blue-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white shadow-sm transition-all duration-200"
-              >
-                {filterConfig.leaveTypes.map(type => (
-                  <option key={type} value={type}>{type}</option>
-                ))}
-              </select>
-            </div>
-
-            {/* Alerts Filter */}
-            <div>
-              <label className="block text-sm font-semibold text-gray-800 mb-3">
-                Alerts
-              </label>
-              <select
-                value={filters.hasAlerts}
-                onChange={(e) => handleFilterChange('hasAlerts', e.target.value)}
-                className="w-full px-4 py-3 border border-blue-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white shadow-sm transition-all duration-200"
-              >
-                <option value="All">All Records</option>
-                <option value="With Alerts">With Alerts Only</option>
-                <option value="Without Alerts">Without Alerts</option>
-              </select>
+              <p className="text-2xl font-bold">{analytics.totalHoursWorked.toFixed(1)}h</p>
+              <p className="text-blue-100 text-sm">Total Hours Worked</p>
             </div>
           </div>
-
-          {/* Productivity Range Filter */}
-          {/* <div className="mt-6">
-            <label className="block text-sm font-semibold text-gray-800 mb-3">
-              Productivity Range: {filters.minProductivity}% - {filters.maxProductivity}%
-            </label>
-            <div className="flex items-center gap-4">
-              <div className="flex-1">
-                <input
-                  type="range"
-                  min="0"
-                  max="100"
-                  step="5"
-                  value={filters.minProductivity}
-                  onChange={(e) => handleFilterChange('minProductivity', parseInt(e.target.value))}
-                  className="w-full accent-blue-500"
-                />
-              </div>
-              <div className="flex items-center gap-2">
-                <input
-                  type="number"
-                  min="0"
-                  max="100"
-                  step="5"
-                  value={filters.minProductivity}
-                  onChange={(e) => handleFilterChange('minProductivity', parseInt(e.target.value))}
-                  className="w-20 px-3 py-2 border border-blue-200 rounded-lg text-sm bg-white shadow-sm"
-                />
-                <span className="text-gray-400">-</span>
-                <input
-                  type="number"
-                  min="0"
-                  max="100"
-                  step="5"
-                  value={filters.maxProductivity}
-                  onChange={(e) => handleFilterChange('maxProductivity', parseInt(e.target.value))}
-                  className="w-20 px-3 py-2 border border-blue-200 rounded-lg text-sm bg-white shadow-sm"
-                />
-              </div>
-            </div>
-          </div> */}
-
-          {/* Active Filters Display */}
-          {activeFilterCount > 0 && (
-            <div className="mt-6 flex items-center gap-2 flex-wrap">
-              <span className="text-sm font-semibold text-gray-800">Active Filters:</span>
-              {filters.timeRange !== 'All Time' && (
-                <FilterChip
-                  label={`Time: ${filters.timeRange}`}
-                  onRemove={() => handleFilterChange('timeRange', 'All Time')}
-                />
-              )}
-              {filters.status !== 'All' && (
-                <FilterChip
-                  label={`Status: ${filters.status}`}
-                  onRemove={() => handleFilterChange('status', 'All')}
-                />
-              )}
-              {filters.leaveType !== 'All' && (
-                <FilterChip
-                  label={`Leave: ${filters.leaveType}`}
-                  onRemove={() => handleFilterChange('leaveType', 'All')}
-                />
-              )}
-              {filters.hasAlerts !== 'All' && (
-                <FilterChip
-                  label={`Alerts: ${filters.hasAlerts}`}
-                  onRemove={() => handleFilterChange('hasAlerts', 'All')}
-                />
-              )}
-              {(filters.minProductivity > 0 || filters.maxProductivity < 100) && (
-                <FilterChip
-                  label={`Productivity: ${filters.minProductivity}%-${filters.maxProductivity}%`}
-                  onRemove={() => {
-                    handleFilterChange('minProductivity', 0);
-                    handleFilterChange('maxProductivity', 100);
-                  }}
-                />
-              )}
-            </div>
-          )}
-        </div>
-
-        <div className="p-8 space-y-8 bg-[#fff]">
-
-          {/* TOP METRICS */}
-          <section>
-            <h4 className="text-lg font-bold text-gray-900 mb-6">Key Performance Indicators</h4>
-
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-              <AnalyticsCard title="Working Days" value={analytics.totalWorkingDays} subtitle="Total tracked" icon={CalendarIcon} color="from-blue-500 to-blue-700"/>
-              <AnalyticsCard title="Present Days" value={analytics.totalPresentDays} subtitle={`${analytics.attendanceRate.toFixed(1)}% rate`} icon={UserCheckIcon} color="from-blue-500 to-blue-700"/>
-              <AnalyticsCard title="Total Absents" value={analytics.totalAbsentDays} subtitle="Total absence" icon={XCircleIcon} color="from-rose-500 to-rose-700"/>
-              <AnalyticsCard title="Total Lates " value={analytics.totalLateDays} subtitle={`${analytics.punctualityRate.toFixed(1)}% punctual`} icon={ClockIcon} color="from-blue-500 to-blue-700"/>
-              <AnalyticsCard title="Overtime Hours" value={analytics.totalOvertime.toFixed(1)} subtitle="Extra hours" icon={ClockIcon} color="from-blue-500 to-blue-700"/>
-              <AnalyticsCard title="Productivity" value={`${analytics.averageProductivity.toFixed(1)}%`} subtitle="Avg score" icon={TrendingUpIcon} color="from-emerald-500 to-emerald-700"/>
-              <AnalyticsCard title="Inactivity" value={analytics.totalInactivity} subtitle="Low activity" icon={CoffeeIcon} color="from-slate-500 to-slate-700"/>
-              <AnalyticsCard title="Sick Leaves" value={analytics.sickLeaves} subtitle="Medical leave" icon={HeartIcon} color="from-cyan-500 to-cyan-700"/>
-            </div>
-          </section>
-
-          {/* LEAVE + HOURS SUMMARY */}
-          <section className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <AnalyticsCard title="Casual Leaves" value={analytics.casualLeaves} subtitle="Personal leave" icon={Sun} color="from-blue-500 to-blue-700"/>
-            <AnalyticsCard title="Annual Leaves" value={analytics.annualLeaves} subtitle="Vacations" icon={Umbrella} color="from-blue-500 to-blue-700"/>
-
-            <div className="p-6 rounded-2xl bg-white shadow-lg border border-blue-100 hover:shadow-xl transition-all duration-300 hover:scale-105">
-              <div className="flex justify-between items-center">
-                <div>
-                  <p className="text-3xl font-bold text-gray-900">{analytics.totalHoursWorked.toFixed(1)}h</p>
-                  <p className="text-sm text-gray-600">Total Hours Worked</p>
-                </div>
-                <div className="bg-gradient-to-r from-blue-500 to-blue-600 p-3 rounded-xl">
-                  <ClockIcon className="h-8 w-8 text-white" />
-                </div>
-              </div>
-              <p className="text-xs text-gray-600 mt-3">
-                Avg: {analytics.averageDailyHours.toFixed(1)}h per day
-              </p>
-            </div>
-          </section>
-
-          {/* LEAVES OVERVIEW */}
-          {/* <section className="p-6 rounded-2xl bg-white shadow-lg border border-blue-100">
-            <h4 className="font-bold text-gray-900 mb-6">Leave Overview</h4>
-
-            <div className="space-y-4">
-              {[ 
-                { label: "Sick Leaves", value: analytics.sickLeaves },
-                { label: "Casual Leaves", value: analytics.casualLeaves },
-                { label: "Annual Leaves", value: analytics.annualLeaves },
-              ].map((l, i) => (
-                <div key={i} className="flex justify-between p-4 rounded-xl bg-gradient-to-r from-blue-50 to-blue-50 text-blue-700 border border-blue-100">
-                  <span className="font-medium">{l.label}</span>
-                  <span className="font-bold">{l.value}</span>
-                </div>
-              ))}
-
-              <div className="flex justify-between p-4 rounded-xl bg-gradient-to-r from-blue-500 to-blue-600 text-white font-bold">
-                <span>Total Leave Days</span>
-                {analytics.sickLeaves + analytics.casualLeaves + analytics.annualLeaves}
-              </div>
-            </div>
-          </section> */}
-
-          {/* SESSION SUMMARY */}
-          {/* <section className="rounded-2xl p-6 bg-gradient-to-br from-blue-50 to-blue-100 shadow-lg border border-blue-100">
-            <h4 className="text-gray-900 font-bold mb-6">
-              Session Summary — {safeEmployee.date}
-            </h4>
-
-            <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-4">
-              {[
-                { label: "Check In", value: safeEmployee.checkIn || "N/A" },
-                { label: "Check Out", value: safeEmployee.checkOut || "N/A" },
-                { label: "Total Hours", value: `${safeEmployee.hours || 0}h` },
-                { label: "Overtime", value: `${safeEmployee.overtime || 0}h` },
-                { label: "Productivity", value: `${safeEmployee.productivity || 0}%`, color: "text-blue-700" },
-                { label: "Quality", value: safeEmployee.sessionQuality },
-                { label: "Focus Score", value: `${focusScore.toFixed(1)}%`, color: "text-blue-700" },
-                { label: "Breaks", value: safeEmployee.breaks.length },
-              ].map((item, i) => (
-                <div key={i} className="bg-white p-4 rounded-xl shadow border border-blue-100 hover:shadow-md transition-all duration-200">
-                  <div className="text-xs text-gray-600">{item.label}</div>
-                  <div className={`text-lg font-bold mt-1 ${item.color || "text-gray-900"}`}>
-                    {item.value}
-                  </div>
-                </div>
-              ))}
-            </div>
-          </section> */}
-
-        </div>
-
-        {/* FOOTER */}
-        <div className="flex justify-between items-center p-6 border-t border-blue-100 bg-gradient-to-r from-blue-50 to-blue-50 rounded-b-3xl">
-          <div className="text-sm text-gray-600">
-            Showing {analytics.filteredRecords} of {analytics.totalRecords} records
-            {activeFilterCount > 0 && ` • ${activeFilterCount} filter(s) active`}
-          </div>
-          <div className="flex gap-3">
-            <button onClick={onClose} className="px-6 py-3 text-gray-700 bg-white border border-blue-200 rounded-xl hover:bg-blue-50 transition-all duration-200 font-medium">
-              Close
-            </button>
-            <button className="px-6 py-3 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-xl hover:from-blue-600 hover:to-blue-700 transition-all duration-200 font-medium shadow-md">
-              Export Report
-            </button>
+          <div className="text-right">
+            <p className="text-lg font-semibold">{analytics.averageDailyHours.toFixed(1)}h</p>
+            <p className="text-blue-200 text-sm">Daily Average</p>
           </div>
         </div>
       </div>
+
+      {/* MAIN METRICS GRID */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <AnalyticsCard 
+          title="Working Days" 
+          value={analytics.totalWorkingDays} 
+          subtitle="Total tracked" 
+          icon={CalendarIcon} 
+          color="from-green-500 to-green-600"
+        />
+        <AnalyticsCard 
+          title="Present Days" 
+          value={analytics.totalPresentDays} 
+          subtitle={`${analytics.attendanceRate.toFixed(1)}% rate`} 
+          icon={UserCheckIcon} 
+          color="from-emerald-500 to-emerald-600"
+        />
+        <AnalyticsCard 
+          title="Absent Days" 
+          value={analytics.totalAbsentDays} 
+          subtitle="Total absence" 
+          icon={XCircleIcon} 
+          color="from-rose-500 to-rose-600"
+        />
+        <AnalyticsCard 
+          title="Late Days" 
+          value={analytics.totalLateDays} 
+          subtitle={`${analytics.punctualityRate.toFixed(1)}% punctual`} 
+          icon={ClockIcon} 
+          color="from-amber-500 to-amber-600"
+        />
+      </div>
+    </section>
+
+    {/* PERFORMANCE METRICS */}
+    <section>
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <AnalyticsCard 
+          title="Overtime Hours" 
+          value={analytics.totalOvertime.toFixed(1)} 
+          subtitle="Extra hours" 
+          icon={ClockIcon} 
+          color="from-blue-500 to-blue-600"
+        />
+        <AnalyticsCard 
+          title="Productivity" 
+          value={`${analytics.averageProductivity.toFixed(1)}%`} 
+          subtitle="Avg score" 
+          icon={TrendingUpIcon} 
+          color="from-green-500 to-green-600"
+        />
+        <AnalyticsCard 
+          title="Inactivity" 
+          value={analytics.totalInactivity} 
+          subtitle="Low activity days" 
+          icon={CoffeeIcon} 
+          color="from-gray-500 to-gray-600"
+        />
+        <AnalyticsCard 
+          title="Sick Leaves" 
+          value={analytics.sickLeaves} 
+          subtitle="Medical leave" 
+          icon={HeartIcon} 
+          color="from-cyan-500 to-cyan-600"
+        />
+      </div>
+    </section>
+
+    {/* LEAVE SUMMARY */}
+    <section>
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <AnalyticsCard 
+          title="Casual Leaves" 
+          value={analytics.casualLeaves} 
+          subtitle="Personal leave" 
+          icon={Sun} 
+          color="from-blue-500 to-blue-600"
+        />
+        <AnalyticsCard 
+          title="Annual Leaves" 
+          value={analytics.annualLeaves} 
+          subtitle="Vacations" 
+          icon={Umbrella} 
+          color="from-indigo-500 to-indigo-600"
+        />
+        <AnalyticsCard 
+          title="Total Leaves" 
+          value={analytics.casualLeaves + analytics.annualLeaves + analytics.sickLeaves} 
+          subtitle="All types" 
+          icon={CalendarIcon} 
+          color="from-purple-500 to-purple-600"
+        />
+      </div>
+    </section>
+
+    {/* Additional spacing at the bottom for better scroll experience */}
+    <div className="h-4"></div>
+  </div>
+
+  {/* FOOTER */}
+  <div className="flex-shrink-0 flex justify-between items-center p-6 border-t border-blue-100 bg-gradient-to-r from-blue-50 to-blue-50 rounded-b-3xl">
+    <div className="text-sm text-gray-600">
+      Showing {analytics.filteredRecords} of {analytics.totalRecords} records
+      {activeFilterCount > 0 && ` • ${activeFilterCount} filter(s) active`}
     </div>
+    <div className="flex gap-3">
+      <button 
+        onClick={onClose} 
+        className="px-6 py-3 text-gray-700 bg-white border border-blue-200 rounded-xl hover:bg-blue-50 transition-all duration-200 font-medium"
+      >
+        Close
+      </button>
+      <button className="px-6 py-3 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-xl hover:from-blue-600 hover:to-blue-700 transition-all duration-200 font-medium shadow-md">
+        Export Report
+      </button>
+    </div>
+  </div>
+</div>
+</div>
   );
 }
 
 // Enhanced Attendance Table Component
-function EnhancedAttendanceTable({ data, onStartBreak, onEndBreak, onViewDetails, onForceCheckout, activeBreak }) {
+function EnhancedAttendanceTable({ data, onViewDetails }) {
   return (
     <table className="w-full">
       <thead>
@@ -1220,11 +1012,7 @@ function EnhancedAttendanceTable({ data, onStartBreak, onEndBreak, onViewDetails
           <EnhancedAttendanceRow 
             key={record.id}
             record={record}
-            onStartBreak={onStartBreak}
-            onEndBreak={onEndBreak}
             onViewDetails={onViewDetails}
-            onForceCheckout={onForceCheckout}
-            activeBreak={activeBreak}
           />
         ))}
       </tbody>
@@ -1233,8 +1021,7 @@ function EnhancedAttendanceTable({ data, onStartBreak, onEndBreak, onViewDetails
 }
 
 // Enhanced Attendance Row Component
-function EnhancedAttendanceRow({ record, onStartBreak, onEndBreak, onViewDetails, onForceCheckout, activeBreak }) {
-  const activeBreakForEmployee = (record.breaks || []).find(b => b.status === 'active');
+function EnhancedAttendanceRow({ record, onViewDetails }) {
   const totalBreakTime = (record.breaks || []).reduce((sum, breakItem) => sum + (breakItem.duration || 0), 0);
 
   return (
@@ -1311,36 +1098,6 @@ function EnhancedAttendanceRow({ record, onStartBreak, onEndBreak, onViewDetails
           >
             <Eye className="h-5 w-5" />
           </button>
-          
-          {record.status === 'Active' && !activeBreakForEmployee && (
-            <button 
-              onClick={() => onStartBreak(record.employeeId)}
-              className="p-3 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-all duration-200"
-              title="Start Break"
-            >
-              <Coffee className="h-5 w-5" />
-            </button>
-          )}
-          
-          {activeBreakForEmployee && (
-            <button 
-              onClick={() => onEndBreak(record.employeeId, activeBreakForEmployee.id)}
-              className="p-3 text-gray-400 hover:text-emerald-600 hover:bg-emerald-50 rounded-xl transition-all duration-200"
-              title="End Break"
-            >
-              <Square className="h-5 w-5" />
-            </button>
-          )}
-          
-          {record.status === 'Active' && (
-            <button 
-              onClick={() => onForceCheckout(record.employeeId)}
-              className="p-3 text-gray-400 hover:text-rose-600 hover:bg-rose-50 rounded-xl transition-all duration-200"
-              title="Force Checkout"
-            >
-              <Power className="h-5 w-5" />
-            </button>
-          )}
         </div>
       </td>
     </tr>
@@ -1356,7 +1113,7 @@ function EnhancedStatusBadge({ status }) {
       case 'Active':
         return { color: 'bg-gradient-to-r from-blue-500 to-blue-600 text-white border-blue-600', icon: Activity };
       case 'Late':
-        return { color: 'bg-gradient-to-r from-blue-500 to-blue-600 text-white border-blue-600', icon: Clock };
+        return { color: 'bg-gradient-to-r from-amber-500 to-orange-600 text-white border-orange-600', icon: Clock };
       case 'Absent':
         return { color: 'bg-gradient-to-r from-rose-500 to-rose-600 text-white border-rose-600', icon: XCircle };
       case 'Remote':
@@ -1374,147 +1131,6 @@ function EnhancedStatusBadge({ status }) {
       <IconComponent className="h-4 w-4" />
       {status}
     </span>
-  );
-}
-
-// Notifications Panel Component
-function NotificationsPanel({ notifications, onClearAll, onMarkAsRead }) {
-  const unreadCount = notifications.filter(n => !n.read).length;
-
-  if (notifications.length === 0) return null;
-
-  return (
-    <div className="bg-gradient-to-br from-white to-blue-25 rounded-3xl border border-blue-100 p-6 shadow-lg">
-      <div className="flex justify-between items-center mb-4">
-        <h3 className="font-bold text-gray-900 flex items-center gap-3">
-          <div className="bg-gradient-to-r from-blue-500 to-blue-600 p-2 rounded-xl">
-            <Bell className="h-5 w-5 text-white" />
-          </div>
-          Notifications
-          {unreadCount > 0 && (
-            <span className="bg-gradient-to-r from-rose-500 to-rose-600 text-white text-sm px-3 py-1 rounded-full font-medium">
-              {unreadCount}
-            </span>
-          )}
-        </h3>
-        <button 
-          onClick={onClearAll}
-          className="text-sm text-blue-600 hover:text-blue-800 bg-blue-50 px-3 py-1 rounded-lg transition-all duration-200"
-        >
-          Clear All
-        </button>
-      </div>
-      <div className="space-y-3 max-h-60 overflow-y-auto">
-        {notifications.map((notification) => (
-          <div 
-            key={notification.id}
-            className={`p-4 rounded-xl border transition-all duration-300 cursor-pointer hover:scale-105 ${
-              notification.read 
-                ? 'bg-white border-blue-100' 
-                : 'bg-gradient-to-r from-blue-50 to-blue-50 border-blue-200 shadow-md'
-            }`}
-            onClick={() => onMarkAsRead(notification.id)}
-          >
-            <div className="flex justify-between items-start mb-2">
-              <span className="font-semibold text-sm text-gray-900">
-                {notification.title}
-              </span>
-              <span className="text-xs text-gray-500">
-                {notification.timestamp.toLocaleTimeString()}
-              </span>
-            </div>
-            <p className="text-sm text-gray-600">{notification.message}</p>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-}
-
-// Enhanced Break Management Modal Component
-function EnhancedBreakManagementModal({ onClose, attendanceData, onEndBreak }) {
-  const activeBreaks = attendanceData.flatMap(record => 
-    (record.breaks || []).filter(b => b.status === 'active').map(b => ({
-      ...b,
-      employee: record.employee,
-      recordId: record.id,
-      employeeId: record.employeeId
-    }))
-  );
-
-  return (
-    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-      <div className="bg-gradient-to-br from-white to-blue-25 rounded-3xl w-full max-w-4xl shadow-2xl border border-blue-100">
-        <div className="flex justify-between items-center p-8 border-b border-blue-100 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-t-3xl">
-          <div>
-            <h3 className="text-2xl font-bold">Break Management Center</h3>
-            <p className="text-blue-100">Monitor and manage all active employee breaks in real-time</p>
-          </div>
-          <button onClick={onClose} className="p-3 hover:bg-white/20 rounded-2xl transition-all duration-200">
-            <X className="h-6 w-6" />
-          </button>
-        </div>
-        
-        <div className="p-8">
-          {activeBreaks.length > 0 ? (
-            <div className="space-y-6">
-              <div className="flex justify-between items-center">
-                <h4 className="font-bold text-gray-900 text-lg">Active Breaks</h4>
-                <span className="text-sm text-gray-600 bg-blue-100 px-3 py-1 rounded-full font-medium">{activeBreaks.length} ongoing</span>
-              </div>
-              {activeBreaks.map((breakItem) => (
-                <div key={`${breakItem.recordId}-${breakItem.id}`} 
-                     className="flex items-center justify-between p-6 bg-gradient-to-r from-blue-50 to-blue-50 rounded-2xl border border-blue-200 hover:shadow-lg transition-all duration-300 hover:scale-105">
-                  <div className="flex items-center gap-4">
-                    <div className="w-4 h-4 bg-blue-500 rounded-full animate-pulse shadow-md" />
-                    <div className="w-12 h-12 bg-gradient-to-r from-blue-500 to-blue-600 rounded-2xl flex items-center justify-center text-white font-bold shadow-md">
-                      {breakItem.employee?.name?.split(' ').map(n => n[0]).join('') || 'EE'}
-                    </div>
-                    <div>
-                      <div className="font-bold text-gray-900">{breakItem.employee?.name || 'Unknown Employee'}</div>
-                      <div className="text-sm text-gray-600">
-                        Started at {breakItem.start} • {breakItem.location}
-                      </div>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-4">
-                    <span className="text-sm text-blue-600 font-semibold bg-blue-100 px-3 py-1 rounded-full">
-                      Ongoing • {Math.floor((new Date() - new Date(`2000-01-01 ${breakItem.start}`)) / (1000 * 60))}m
-                    </span>
-                    <button 
-                      onClick={() => onEndBreak(breakItem.employeeId, breakItem.id)}
-                      className="px-4 py-2 bg-gradient-to-r from-emerald-500 to-emerald-600 text-white text-sm rounded-xl hover:from-emerald-600 hover:to-emerald-700 transition-all duration-200 shadow-md font-medium"
-                    >
-                      End Break
-                    </button>
-                  </div>
-                </div>
-              ))}
-            </div>
-          ) : (
-            <div className="text-center py-12">
-              <div className="bg-gradient-to-r from-blue-100 to-blue-100 w-20 h-20 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-inner">
-                <Coffee className="h-10 w-10 text-blue-400" />
-              </div>
-              <h4 className="text-xl font-bold text-gray-900 mb-2">No Active Breaks</h4>
-              <p className="text-gray-600">All employees are currently working.</p>
-            </div>
-          )}
-        </div>
-        
-        <div className="flex justify-end gap-4 p-8 border-t border-blue-100">
-          <button 
-            onClick={onClose}
-            className="px-6 py-3 text-gray-700 bg-white border border-blue-200 rounded-xl hover:bg-blue-50 transition-all duration-200 font-medium"
-          >
-            Close
-          </button>
-          <button className="px-6 py-3 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-xl hover:from-blue-600 hover:to-blue-700 transition-all duration-200 font-medium shadow-md">
-            Break Policy Settings
-          </button>
-        </div>
-      </div>
-    </div>
   );
 }
 
@@ -1669,13 +1285,10 @@ export function AdvancedAttendanceManagement() {
   });
   const [viewMode, setViewMode] = useState('daily');
   const [selectedEmployee, setSelectedEmployee] = useState(null);
-  const [showBreakModal, setShowBreakModal] = useState(false);
   const [showGeoModal, setShowGeoModal] = useState(false);
   const [showAnalytics, setShowAnalytics] = useState(false);
-  const [activeBreak, setActiveBreak] = useState(null);
   const [realTimeUpdates, setRealTimeUpdates] = useState(true);
   const [autoRefresh, setAutoRefresh] = useState(true);
-  const [notifications, setNotifications] = useState([]);
 
   // Sample data with all required fields
   const sampleData = [
@@ -1813,7 +1426,7 @@ export function AdvancedAttendanceManagement() {
       employee: {
         id: 3,
         name: 'Mike Chen',
-        department: 'Engineering',
+        department: 'Production',
         position: 'Senior Developer',
         avatar: '/avatars/mike.jpg',
         email: 'mike@company.com',
@@ -2132,79 +1745,6 @@ export function AdvancedAttendanceManagement() {
     }
   ];
 
-  // Enhanced break management
-  const handleStartBreak = (employeeId) => {
-    setAttendanceData(prev => prev.map(att => 
-      att.employeeId === employeeId && att.status === 'Active' 
-        ? {
-            ...att,
-            breaks: [...(att.breaks || []), {
-              id: Date.now(),
-              type: 'Break',
-              start: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-              end: null,
-              duration: 0,
-              status: 'active',
-              location: att.location?.type === 'Office' ? 'Break Room' : 'Remote',
-              autoDetected: false
-            }]
-          }
-        : att
-    ));
-    
-    addNotification('Break Started', `${getEmployeeName(employeeId)} started a break`, 'info');
-  };
-
-  const handleEndBreak = (employeeId, breakId) => {
-    setAttendanceData(prev => prev.map(att => 
-      att.employeeId === employeeId 
-        ? {
-            ...att,
-            breaks: (att.breaks || []).map(b => 
-              b.id === breakId 
-                ? {
-                    ...b,
-                    end: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-                    duration: Math.round((new Date() - new Date(`${att.date} ${b.start}`)) / (1000 * 60)),
-                    status: 'completed'
-                  }
-                : b
-            )
-          }
-        : att
-    ));
-    
-    addNotification('Break Ended', `${getEmployeeName(employeeId)} ended their break`, 'success');
-    setActiveBreak(null);
-  };
-
-  const handleForceCheckout = (employeeId) => {
-    setAttendanceData(prev => prev.map(att => 
-      att.employeeId === employeeId && att.status === 'Active'
-        ? {
-            ...att,
-            checkOut: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-            status: 'Present',
-            hours: calculateHours(att.checkIn, new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }))
-          }
-        : att
-    ));
-    
-    addNotification('Forced Checkout', `${getEmployeeName(employeeId)} was automatically checked out`, 'warning');
-  };
-
-  const addNotification = (title, message, type = 'info') => {
-    const newNotification = {
-      id: Date.now(),
-      title,
-      message,
-      type,
-      timestamp: new Date(),
-      read: false
-    };
-    setNotifications(prev => [newNotification, ...prev.slice(0, 9)]);
-  };
-
   const getEmployeeName = (employeeId) => {
     const employee = attendanceData.find(a => a.employeeId === employeeId)?.employee;
     return employee?.name || 'Employee';
@@ -2242,29 +1782,11 @@ export function AdvancedAttendanceManagement() {
         <div className="flex justify-between items-start">
           <div>
             <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-blue-600 bg-clip-text text-transparent">
-              Advanced Attendance Management
+              Attendance Management
             </h1>
-            <p className="text-gray-600 mt-3 text-lg">Comprehensive attendance tracking with real-time monitoring and analytics</p>
+            {/* <p className="text-gray-600 mt-3 text-lg">Comprehensive attendance tracking with real-time monitoring and analytics</p> */}
           </div>
           <div className="flex gap-4">
-            {/* <div className="flex items-center gap-3 bg-gradient-to-r from-emerald-500 to-emerald-600 text-white px-4 py-2 rounded-xl shadow-lg">
-              <div className="w-3 h-3 bg-white rounded-full animate-pulse"></div>
-              <span className="text-sm font-semibold">Live Updates</span>
-            </div> */}
-            {/* <button 
-              onClick={() => setShowAnalytics(true)}
-              className="flex items-center gap-3 px-5 py-3 border border-blue-200 rounded-xl hover:bg-white transition-all duration-200 bg-white shadow-md hover:shadow-lg font-medium"
-            >
-              <BarChart3 className="h-5 w-5 text-blue-600" />
-              Analytics
-            </button> */}
-            {/* <button 
-              onClick={() => setShowGeoModal(true)}
-              className="flex items-center gap-3 px-5 py-3 border border-blue-200 rounded-xl hover:bg-white transition-all duration-200 bg-white shadow-md hover:shadow-lg font-medium"
-            >
-              <Map className="h-5 w-5 text-blue-600" />
-              Geo View
-            </button> */}
             <button className="flex items-center gap-3 px-5 py-3 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-xl hover:from-blue-600 hover:to-blue-700 transition-all duration-200 shadow-lg font-medium">
               <Download className="h-5 w-5" />
               Export Report
@@ -2272,159 +1794,75 @@ export function AdvancedAttendanceManagement() {
           </div>
         </div>
 
-        {/* Attendance Overview */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-          <div className="bg-gradient-to-br from-white to-blue-25 rounded-2xl p-6 border border-blue-100 shadow-lg hover:shadow-xl transition-all duration-300">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-3xl font-bold text-gray-900">{stats.present}</p>
-                <p className="text-sm font-semibold text-gray-600">Present</p>
-              </div>
-              <div className="bg-gradient-to-r from-emerald-500 to-emerald-600 p-3 rounded-xl shadow-md">
-                <UserCheck className="h-6 w-6 text-white" />
-              </div>
-            </div>
-            <div className="mt-3 text-xs text-emerald-600 font-semibold bg-emerald-50 px-2 py-1 rounded-full inline-block">+2 from yesterday</div>
+        {/* Top Section with Pie Chart and Key Metrics */}
+        <div className="grid grid-cols-1 xl:grid-cols-2 gap-8">
+          {/* Pie Chart - Now on top */}
+          <div className="xl:col-span-1">
+            <EnhancedAttendancePieChart data={filteredData} />
           </div>
 
-          <div className="bg-gradient-to-br from-white to-blue-25 rounded-2xl p-6 border border-blue-100 shadow-lg hover:shadow-xl transition-all duration-300">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-3xl font-bold text-gray-900">{stats.absent}</p>
-                <p className="text-sm font-semibold text-gray-600">Absent</p>
+          {/* Key Metrics */}
+          <div className="grid grid-cols-2 gap-6">
+            <div className="bg-gradient-to-br from-white to-blue-25 rounded-2xl p-6 border border-blue-100 shadow-lg hover:shadow-xl transition-all duration-300">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-3xl font-bold text-gray-900">{stats.present}</p>
+                  <p className="text-sm font-semibold text-gray-600">Present</p>
+                </div>
+                <div className="bg-gradient-to-r from-emerald-500 to-emerald-600 p-3 rounded-xl shadow-md">
+                  <UserCheck className="h-6 w-6 text-white" />
+                </div>
               </div>
-              <div className="bg-gradient-to-r from-rose-500 to-rose-600 p-3 rounded-xl shadow-md">
-                <XCircle className="h-6 w-6 text-white" />
-              </div>
+              <div className="mt-3 text-xs text-emerald-600 font-semibold bg-emerald-50 px-2 py-1 rounded-full inline-block">+2 from yesterday</div>
             </div>
-            <div className="mt-3 text-xs text-rose-600 font-semibold bg-rose-50 px-2 py-1 rounded-full inline-block">+1 from yesterday</div>
-          </div>
 
-          <div className="bg-gradient-to-br from-white to-blue-25 rounded-2xl p-6 border border-blue-100 shadow-lg hover:shadow-xl transition-all duration-300">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-3xl font-bold text-gray-900">{stats.active}</p>
-                <p className="text-sm font-semibold text-gray-600">Active</p>
+            <div className="bg-gradient-to-br from-white to-blue-25 rounded-2xl p-6 border border-blue-100 shadow-lg hover:shadow-xl transition-all duration-300">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-3xl font-bold text-gray-900">{stats.absent}</p>
+                  <p className="text-sm font-semibold text-gray-600">Absent</p>
+                </div>
+                <div className="bg-gradient-to-r from-rose-500 to-rose-600 p-3 rounded-xl shadow-md">
+                  <XCircle className="h-6 w-6 text-white" />
+                </div>
               </div>
-              <div className="bg-gradient-to-r from-blue-500 to-blue-600 p-3 rounded-xl shadow-md">
-                <Activity className="h-6 w-6 text-white" />
-              </div>
+              <div className="mt-3 text-xs text-rose-600 font-semibold bg-rose-50 px-2 py-1 rounded-full inline-block">+1 from yesterday</div>
             </div>
-            <div className="mt-3 text-xs text-blue-600 font-semibold bg-blue-50 px-2 py-1 rounded-full inline-block">Currently working</div>
-          </div>
 
-          <div className="bg-gradient-to-br from-white to-blue-25 rounded-2xl p-6 border border-blue-100 shadow-lg hover:shadow-xl transition-all duration-300">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-3xl font-bold text-gray-900">{stats.inactive}</p>
-                <p className="text-sm font-semibold text-gray-600">Inactive</p>
+            <div className="bg-gradient-to-br from-white to-blue-25 rounded-2xl p-6 border border-blue-100 shadow-lg hover:shadow-xl transition-all duration-300">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-3xl font-bold text-gray-900">{stats.active}</p>
+                  <p className="text-sm font-semibold text-gray-600">Active</p>
+                </div>
+                <div className="bg-gradient-to-r from-blue-500 to-blue-600 p-3 rounded-xl shadow-md">
+                  <Activity className="h-6 w-6 text-white" />
+                </div>
               </div>
-              <div className="bg-gradient-to-r from-slate-500 to-slate-600 p-3 rounded-xl shadow-md">
-                <Clock className="h-6 w-6 text-white" />
-              </div>
+              <div className="mt-3 text-xs text-blue-600 font-semibold bg-blue-50 px-2 py-1 rounded-full inline-block">Currently working</div>
             </div>
-            <div className="mt-3 text-xs text-slate-600 font-semibold bg-slate-50 px-2 py-1 rounded-full inline-block">Checked out or absent</div>
+
+            <div className="bg-gradient-to-br from-white to-blue-25 rounded-2xl p-6 border border-blue-100 shadow-lg hover:shadow-xl transition-all duration-300">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-3xl font-bold text-gray-900">{stats.inactive}</p>
+                  <p className="text-sm font-semibold text-gray-600">Inactive</p>
+                </div>
+                <div className="bg-gradient-to-r from-slate-500 to-slate-600 p-3 rounded-xl shadow-md">
+                  <Clock className="h-6 w-6 text-white" />
+                </div>
+              </div>
+              <div className="mt-3 text-xs text-slate-600 font-semibold bg-slate-50 px-2 py-1 rounded-full inline-block">Checked out or absent</div>
+            </div>
           </div>
         </div>
 
-        {/* Advanced Filters */}
-        <AdvancedFilters 
-          filters={filters}
-          onFiltersChange={setFilters}
-          onClearAll={clearAllFilters}
-        />
-
-        {/* Filters and Recent Activities in same row */}
+        {/* Main Content Area */}
         <div className="grid grid-cols-1 xl:grid-cols-4 gap-8">
-
-          {/* Filters Section - 3 columns */}
-          <div className="xl:col-span-3">
-            <div className="bg-gradient-to-br from-white to-blue-25 rounded-3xl border border-blue-100 shadow-lg mb-8">
-      {/* Filters Header */}
-      <div className="flex items-center gap-3 p-6 border-b border-blue-100">
-        <div className="flex items-center gap-2 bg-gradient-to-r from-blue-500 to-blue-600 text-white p-2 rounded-xl">
-          <SlidersHorizontal className="h-5 w-5" />
-          <h3 className="font-bold text-white">Filters</h3>
-        </div>
-      </div>
-
-      {/* Filters */}
-      <div className="p-6">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          {/* Department */}
-          <div>
-            <label className="block text-sm font-semibold text-gray-800 mb-3">
-              Department
-            </label>
-            <select
-              value={filters.department || 'All'}
-              onChange={(e) => handleFilterChange('department', e.target.value)}
-              className="w-full px-4 py-3 border border-blue-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white shadow-sm transition-all duration-200"
-            >
-              {filterConfig.departments.map((dept) => (
-                <option key={dept} value={dept}>
-                  {dept}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          {/* Break Status */}
-          <div>
-            <label className="block text-sm font-semibold text-gray-800 mb-3">
-              Break Status
-            </label>
-            <select
-              value={filters.breakStatus || 'All'}
-              onChange={(e) => handleFilterChange('breakStatus', e.target.value)}
-              className="w-full px-4 py-3 border border-blue-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white shadow-sm transition-all duration-200"
-            >
-              <option value="All">All</option>
-              <option value="On Break">On Break</option>
-              <option value="Not On Break">Not On Break</option>
-            </select>
-          </div>
-
-          {/* Status */}
-          <div>
-            <label className="block text-sm font-semibold text-gray-800 mb-3">
-              Status
-            </label>
-            <select
-              value={filters.status || 'All'}
-              onChange={(e) => handleFilterChange('status', e.target.value)}
-              className="w-full px-4 py-3 border border-blue-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white shadow-sm transition-all duration-200"
-            >
-              {filterConfig.statuses.map((status) => (
-                <option key={status} value={status}>
-                  {status}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          {/* Time */}
-          <div>
-            <label className="block text-sm font-semibold text-gray-800 mb-3">
-              Time
-            </label>
-            <select
-              value={filters.timeRange || 'All Time'}
-              onChange={(e) => handleFilterChange('timeRange', e.target.value)}
-              className="w-full px-4 py-3 border border-blue-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white shadow-sm transition-all duration-200"
-            >
-              {filterConfig.timeRanges.map((range) => (
-                <option key={range} value={range}>
-                  {range}
-                </option>
-              ))}
-            </select>
-          </div>
-        </div>
-      </div>
-    </div>
-            
-            <div className="bg-gradient-to-br from-white to-blue-25 rounded-3xl p-6 border border-blue-100 shadow-lg">
+          {/* Filters and Table Section - 3 columns */}
+          <div className="xl:col-span-3 space-y-8">
+            {/* Search and Controls */}
+            <div className="bg-gradient-to-br from-white to-blue-25 rounded-3xl px-6 py-4 border border-blue-100 shadow-lg">
               <div className="flex flex-col lg:flex-row gap-6 justify-between items-start lg:items-center">
                 <div className="flex flex-col sm:flex-row gap-6 flex-1">
                   <div className="relative flex-1 sm:max-w-xs">
@@ -2463,67 +1901,115 @@ export function AdvancedAttendanceManagement() {
                     />
                     Auto Refresh
                   </label>
-                  {/* <button 
-                    onClick={() => setShowBreakModal(true)}
-                    className="flex items-center gap-3 px-4 py-3 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-xl hover:from-blue-600 hover:to-blue-700 transition-all duration-200 shadow-md font-medium"
+                </div>
+              </div>
+
+              {/* Filter Controls */}
+              <div className="mt-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                {/* Department Filter */}
+                <div>
+                  <label className="block text-sm font-semibold text-gray-800 mb-2">
+                    Department
+                  </label>
+                  <select
+                    value={filters.department}
+                    onChange={(e) => setFilters({...filters, department: e.target.value})}
+                    className="w-full px-3 py-2 border border-blue-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white shadow-sm transition-all duration-200 text-sm"
                   >
-                    <Coffee className="h-5 w-5" />
-                    Breaks
-                  </button> */}
+                    {filterConfig.departments.map((dept) => (
+                      <option key={dept} value={dept}>{dept}</option>
+                    ))}
+                  </select>
+                </div>
+
+                {/* Status Filter */}
+                <div>
+                  <label className="block text-sm font-semibold text-gray-800 mb-2">
+                    Status
+                  </label>
+                  <select
+                    value={filters.status}
+                    onChange={(e) => setFilters({...filters, status: e.target.value})}
+                    className="w-full px-3 py-2 border border-blue-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white shadow-sm transition-all duration-200 text-sm"
+                  >
+                    {filterConfig.statuses.map((status) => (
+                      <option key={status} value={status}>{status}</option>
+                    ))}
+                  </select>
+                </div>
+
+                {/* Time Range Filter */}
+                <div>
+                  <label className="block text-sm font-semibold text-gray-800 mb-2">
+                    Time Range
+                  </label>
+                  <select
+                    value={filters.timeRange}
+                    onChange={(e) => setFilters({...filters, timeRange: e.target.value})}
+                    className="w-full px-3 py-2 border border-blue-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white shadow-sm transition-all duration-200 text-sm"
+                  >
+                    {filterConfig.timeRanges.map((range) => (
+                      <option key={range} value={range}>{range}</option>
+                    ))}
+                  </select>
+                </div>
+
+                {/* Break Status Filter */}
+                <div>
+                  <label className="block text-sm font-semibold text-gray-800 mb-2">
+                    Break Status
+                  </label>
+                  <select
+                    value={filters.breakStatus}
+                    onChange={(e) => setFilters({...filters, breakStatus: e.target.value})}
+                    className="w-full px-3 py-2 border border-blue-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white shadow-sm transition-all duration-200 text-sm"
+                  >
+                    <option value="All">All</option>
+                    <option value="On Break">On Break</option>
+                    <option value="Not On Break">Not On Break</option>
+                  </select>
                 </div>
               </div>
             </div>
 
-            {/* Enhanced Attendance Table */}
+            {/* Attendance Table */}
             <div className="bg-gradient-to-br from-white to-blue-25 rounded-3xl border border-blue-100 shadow-lg overflow-hidden">
               <div className="overflow-x-auto">
                 <EnhancedAttendanceTable 
                   data={filteredData}
-                  onStartBreak={handleStartBreak}
-                  onEndBreak={handleEndBreak}
                   onViewDetails={setSelectedEmployee}
-                  onForceCheckout={handleForceCheckout}
-                  activeBreak={activeBreak}
                 />
               </div>
             </div>
           </div>
 
-          {/* Sidebar with Pie Chart and Activities */}
+          {/* Sidebar with Recent Activities - 1 column */}
           <div className="space-y-8">
-            {/* Pie Chart */}
-            <EnhancedAttendancePieChart data={filteredData} />
-
-            {/* Recent Activities Sidebar */}
-            <div className="bg-gradient-to-br from-white to-blue-25 rounded-3xl p-6 border border-blue-100 shadow-lg">
-              <h3 className="font-bold text-gray-900 mb-6 text-lg">Recent Activities</h3>
-              <div className="space-y-4">
-                {recentActivities.map((activity) => (
-                  <div key={activity.id} className="flex items-start gap-4 p-4 rounded-xl hover:bg-white transition-all duration-300 hover:shadow-md">
-                    <div className={`p-3 rounded-xl shadow-md ${
-                      activity.type === 'checkin' ? 'bg-gradient-to-r from-emerald-500 to-emerald-600' :
-                      activity.type === 'checkout' ? 'bg-gradient-to-r from-blue-500 to-blue-600' :
-                      activity.type === 'break' ? 'bg-gradient-to-r from-blue-500 to-blue-600' :
-                      'bg-gradient-to-r from-rose-500 to-rose-600'
-                    }`}>
-                      <activity.icon className="h-5 w-5 text-white" />
+            {/* Recent Activities - Sticky */}
+            <div className="sticky top-8">
+              <div className="bg-gradient-to-br from-white to-blue-25 rounded-3xl p-6 border border-blue-100 shadow-lg">
+                <h3 className="font-bold text-gray-900 mb-6 text-lg">Recent Activities</h3>
+                <div className="space-y-4">
+                  {recentActivities.map((activity) => (
+                    <div key={activity.id} className="flex items-start gap-4 p-4 rounded-xl hover:bg-white transition-all duration-300 hover:shadow-md">
+                      <div className={`p-3 rounded-xl shadow-md ${
+                        activity.type === 'checkin' ? 'bg-gradient-to-r from-emerald-500 to-emerald-600' :
+                        activity.type === 'checkout' ? 'bg-gradient-to-r from-blue-500 to-blue-600' :
+                        activity.type === 'break' ? 'bg-gradient-to-r from-blue-500 to-blue-600' :
+                        'bg-gradient-to-r from-rose-500 to-rose-600'
+                      }`}>
+                        <activity.icon className="h-5 w-5 text-white" />
+                      </div>
+                      <div className="flex-1">
+                        <div className="text-sm font-semibold text-gray-900">{activity.employee}</div>
+                        <div className="text-sm text-gray-600">{activity.action}</div>
+                        <div className="text-xs text-gray-500 mt-1">{activity.time}</div>
+                      </div>
                     </div>
-                    <div className="flex-1">
-                      <div className="text-sm font-semibold text-gray-900">{activity.employee}</div>
-                      <div className="text-sm text-gray-600">{activity.action}</div>
-                      <div className="text-xs text-gray-500 mt-1">{activity.time}</div>
-                    </div>
-                  </div>
-                ))}
+                  ))}
+                </div>
               </div>
             </div>
-
-            {/* Notifications Panel */}
-            <NotificationsPanel 
-              notifications={notifications}
-              onClearAll={() => setNotifications([])}
-              onMarkAsRead={(id) => setNotifications(prev => prev.map(n => n.id === id ? {...n, read: true} : n))}
-            />
           </div>
         </div>
 
@@ -2533,14 +2019,6 @@ export function AdvancedAttendanceManagement() {
             employee={selectedEmployee}
             onClose={() => setSelectedEmployee(null)}
             attendanceData={attendanceData}
-          />
-        )}
-
-        {showBreakModal && (
-          <EnhancedBreakManagementModal
-            onClose={() => setShowBreakModal(false)}
-            attendanceData={attendanceData}
-            onEndBreak={handleEndBreak}
           />
         )}
 
