@@ -243,7 +243,7 @@ const Sidebar = ({ isCollapsed, setIsCollapsed, activeItem, setActiveItem }) => 
         fixed lg:static inset-y-0 left-0 z-50
         bg-blue-50/80 backdrop-blur-md border-r border-blue-200/40
         transition-all duration-500 ease-in-out
-        flex flex-col
+        flex flex-col pr-2
         ${isCollapsed ? '-translate-x-full lg:translate-x-0 lg:w-20' : 'translate-x-0 w-64'}
         shadow-xl shadow-blue-500/10
       `}>

@@ -5,210 +5,1473 @@ import {
   Edit3, Trash2, MoreVertical, UserPlus, RotateCcw, BarChart3,
   Send, Mail, Bell, Shield, Zap, Crown, Coffee, Sun, Moon,
   ArrowLeft, ArrowRight, User, Target, PieChart, ChevronUp,
-  MapPin, Building, Grid, List, X
+  Building, Grid, List, X, MessageCircle, UserCheck, UserX,
+  Utensils,Sparkle, Cigarette, Wifi, Activity
 } from 'lucide-react';
 
-// Pie Chart Component
-const PieChartComponent = ({ data, title, size = 200 }) => {
-  const total = data.reduce((sum, item) => sum + item.value, 0);
+// Import Chart.js
+import {
+  Chart as ChartJS,
+  CategoryScale,
+  LinearScale,
+  BarElement,
+  Title,
+  Tooltip,
+  Legend,
+  ArcElement,
+} from 'chart.js';
+import { Bar, Doughnut } from 'react-chartjs-2';
+
+// Register Chart.js components
+ChartJS.register(
+  CategoryScale,
+  LinearScale,
+  BarElement,
+  Title,
+  Tooltip,
+  Legend,
+  ArcElement
+);
+
+// Break Types Configuration
+const BREAK_TYPES = {
+  Cigarette: { label: 'Cigarette Break', icon: Cigarette, color: 'bg-orange-100 text-orange-800', border: 'border-orange-200' },
+  Pray: { label: 'Pray Break', icon: Sparkle, color: 'bg-purple-100 text-purple-800', border: 'border-purple-200' },
+  dinner: { label: 'Dinner Break', icon: Utensils, color: 'bg-red-100 text-red-800', border: 'border-red-200' },
+  lunch: { label: 'Lunch Break', icon: Coffee, color: 'bg-green-100 text-green-800', border: 'border-green-200' },
+  washroom: { label: 'Washroom Break', icon: Wifi, color: 'bg-blue-100 text-blue-800', border: 'border-blue-200' },
+  short: { label: 'Short Break', icon: Activity, color: 'bg-gray-100 text-gray-800', border: 'border-gray-200' }
+};
+
+// Enhanced Column Chart Component with Chart.js
+const ColumnChartComponent = ({ data, title, height = 300, stacked = false }) => {
+  const options = {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: {
+        position: 'top',
+      },
+      title: {
+        display: true,
+        text: title,
+      },
+      tooltip: {
+        mode: stacked ? 'index' : 'nearest',
+        intersect: false,
+      },
+    },
+    scales: {
+      x: {
+        grid: {
+          display: false,
+        },
+      },
+      y: {
+        beginAtZero: true,
+        grid: {
+          color: 'rgba(0, 0, 0, 0.1)',
+        },
+      },
+    },
+    interaction: {
+      mode: 'nearest',
+      axis: 'x',
+      intersect: false,
+    },
+  };
+
+  const chartData = stacked ? {
+    labels: data.map(item => item.name),
+    datasets: [
+      {
+        label: 'Present',
+        data: data.map(item => item.present),
+        backgroundColor: '#10b981',
+        borderColor: '#10b981',
+        borderWidth: 1,
+      },
+      {
+        label: 'Leaves',
+        data: data.map(item => item.leave),
+        backgroundColor: '#f59e0b',
+        borderColor: '#f59e0b',
+        borderWidth: 1,
+      },
+      {
+        label: 'Half Days',
+        data: data.map(item => item.halfday),
+        backgroundColor: '#3b82f6',
+        borderColor: '#3b82f6',
+        borderWidth: 1,
+      },
+      {
+        label: 'Absent',
+        data: data.map(item => item.absent),
+        backgroundColor: '#ef4444',
+        borderColor: '#ef4444',
+        borderWidth: 1,
+      },
+    ],
+  } : {
+    labels: data.map(item => item.name),
+    datasets: [
+      {
+        label: title,
+        data: data.map(item => item.value),
+        backgroundColor: data.map(item => item.color),
+        borderColor: data.map(item => item.color),
+        borderWidth: 1,
+      },
+    ],
+  };
 
   return (
-    <div className="flex flex-col items-center">
-      <h3 className="text-lg font-semibold text-gray-900 mb-4">{title}</h3>
-      <div className="relative" style={{ width: size, height: size }}>
-        <svg width={size} height={size} viewBox="0 0 42 42" className="transform -rotate-90">
-          {data.map((item, index) => {
-            if (item.value === 0) return null;
-            
-            const percentage = (item.value / total) * 100;
-            const strokeDasharray = `${percentage} ${100 - percentage}`;
-            
-            return (
-              <circle
-                key={index}
-                cx="21"
-                cy="21"
-                r="15.9"
-                fill="transparent"
-                stroke={item.color}
-                strokeWidth="3"
-                strokeDasharray={strokeDasharray}
-                strokeDashoffset={0}
-                style={{
-                  transition: 'stroke-dasharray 0.3s ease',
-                }}
-              />
-            );
-          })}
-        </svg>
-        
-        {/* Center text */}
-        <div className="absolute inset-0 flex items-center justify-center">
-          <div className="text-center">
-            <div className="text-2xl font-bold text-gray-900">{total}</div>
-            <div className="text-sm text-gray-600">Total</div>
+    <div className="flex flex-col w-full" style={{ height: `${height}px` }}>
+      <Bar 
+        data={chartData} 
+        options={{
+          ...options,
+          scales: {
+            ...options.scales,
+            x: {
+              ...options.scales.x,
+              stacked: stacked,
+            },
+            y: {
+              ...options.scales.y,
+              stacked: stacked,
+            },
+          },
+        }} 
+      />
+    </div>
+  );
+};
+
+// Doughnut Chart Component for Status Distribution
+const StatusDistributionChart = ({ data, title }) => {
+  const chartData = {
+    labels: ['Present', 'Leaves', 'Half Days', 'Absent'],
+    datasets: [
+      {
+        data: [data.present, data.leave, data.halfday, data.absent],
+        backgroundColor: [
+          '#10b981',
+          '#f59e0b',
+          '#3b82f6',
+          '#ef4444',
+        ],
+        borderColor: [
+          '#0f966c',
+          '#d97706',
+          '#2563eb',
+          '#dc2626',
+        ],
+        borderWidth: 2,
+      },
+    ],
+  };
+
+  const options = {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: {
+        position: 'bottom',
+      },
+      title: {
+        display: true,
+        text: title,
+      },
+    },
+    cutout: '60%',
+  };
+
+  return (
+    <div className="flex flex-col w-full" style={{ height: '300px' }}>
+      <Doughnut data={chartData} options={options} />
+    </div>
+  );
+};
+
+// Break Details Modal Component
+const BreakDetailsModal = ({ isOpen, onClose, breaks, date, employeeName }) => {
+  if (!isOpen) return null;
+
+  const formatTime = (timeString) => {
+    if (!timeString || timeString === '-') return 'N/A';
+    return timeString;
+  };
+
+  const calculateDuration = (start, end) => {
+    if (!start || !end || start === '-' || end === '-') return 'N/A';
+    
+    const startTime = new Date(`2000-01-01T${start}`);
+    const endTime = new Date(`2000-01-01T${end}`);
+    const durationMs = endTime - startTime;
+    const durationMins = Math.floor(durationMs / (1000 * 60));
+    
+    return `${durationMins} min`;
+  };
+
+  const getBreakStats = () => {
+    const totalBreaks = breaks.length;
+    const totalDuration = breaks.reduce((total, breakItem) => {
+      if (breakItem.breakStart && breakItem.breakEnd && breakItem.breakStart !== '-' && breakItem.breakEnd !== '-') {
+        const start = new Date(`2000-01-01T${breakItem.breakStart}`);
+        const end = new Date(`2000-01-01T${breakItem.breakEnd}`);
+        return total + (end - start) / (1000 * 60);
+      }
+      return total;
+    }, 0);
+
+    return {
+      totalBreaks,
+      totalDuration: Math.round(totalDuration),
+      averageDuration: totalBreaks > 0 ? Math.round(totalDuration / totalBreaks) : 0
+    };
+  };
+
+  const breakStats = getBreakStats();
+
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+      <div className="bg-white rounded-2xl w-full max-w-2xl max-h-[90vh] overflow-hidden">
+        {/* Header */}
+        <div className="flex items-center justify-between p-6 border-b border-gray-200 bg-gradient-to-r from-blue-50 to-indigo-50">
+          <div>
+            <h2 className="text-xl font-bold text-gray-900">Break Details</h2>
+            <p className="text-gray-600">
+              {employeeName} • {new Date(date).toLocaleDateString('en-US', { 
+                weekday: 'long', 
+                year: 'numeric', 
+                month: 'long', 
+                day: 'numeric' 
+              })}
+            </p>
+          </div>
+          <button 
+            onClick={onClose}
+            className="p-2 hover:bg-white rounded-lg transition duration-300"
+          >
+            <X className="h-5 w-5 text-gray-600" />
+          </button>
+        </div>
+
+        {/* Break Statistics */}
+        <div className="p-6 bg-white border-b border-gray-200">
+          <div className="grid grid-cols-3 gap-4">
+            <div className="text-center p-4 bg-blue-50 rounded-xl border border-blue-100">
+              <div className="text-2xl font-bold text-blue-600">{breakStats.totalBreaks}</div>
+              <div className="text-sm text-blue-800 font-medium">Total Breaks</div>
+            </div>
+            <div className="text-center p-4 bg-green-50 rounded-xl border border-green-100">
+              <div className="text-2xl font-bold text-green-600">{breakStats.totalDuration}</div>
+              <div className="text-sm text-green-800 font-medium">Total Minutes</div>
+            </div>
+            <div className="text-center p-4 bg-purple-50 rounded-xl border border-purple-100">
+              <div className="text-2xl font-bold text-purple-600">{breakStats.averageDuration}</div>
+              <div className="text-sm text-purple-800 font-medium">Avg per Break</div>
+            </div>
           </div>
         </div>
-      </div>
-      
-      {/* Legend */}
-      <div className="mt-4 space-y-2">
-        {data.map((item, index) => (
-          <div key={index} className="flex items-center space-x-2">
-            <div 
-              className="w-3 h-3 rounded-full"
-              style={{ backgroundColor: item.color }}
-            ></div>
-            <span className="text-sm text-gray-700">{item.name}</span>
-            <span className="text-sm font-medium text-gray-900">({item.value})</span>
+
+        {/* Breaks List */}
+        <div className="p-6 max-h-96 overflow-y-auto">
+          {breaks.length > 0 ? (
+            <div className="space-y-4">
+              {breaks.map((breakItem, index) => {
+                const breakType = BREAK_TYPES[breakItem.type] || BREAK_TYPES.short;
+                const IconComponent = breakType.icon;
+                const duration = calculateDuration(breakItem.breakStart, breakItem.breakEnd);
+
+                return (
+                  <div 
+                    key={breakItem.id || index}
+                    className="flex items-center justify-between p-4 bg-gray-50 rounded-xl border border-gray-200 hover:border-blue-300 transition duration-300"
+                  >
+                    <div className="flex items-center space-x-4 flex-1">
+                      <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${breakType.color}`}>
+                        <IconComponent className="h-6 w-6" />
+                      </div>
+                      <div className="flex-1">
+                        <div className="flex items-center space-x-3">
+                          <h4 className="font-semibold text-gray-900">{breakType.label}</h4>
+                          <span className={`px-2 py-1 rounded-full text-xs font-medium ${breakType.color}`}>
+                            {breakItem.type}
+                          </span>
+                        </div>
+                        <div className="grid grid-cols-2 gap-4 mt-2 text-sm text-gray-600">
+                          <div className="flex items-center space-x-2">
+                            <Clock className="h-4 w-4 text-gray-400" />
+                            <span>Start: {formatTime(breakItem.breakStart)}</span>
+                          </div>
+                          <div className="flex items-center space-x-2">
+                            <Clock className="h-4 w-4 text-gray-400" />
+                            <span>End: {formatTime(breakItem.breakEnd)}</span>
+                          </div>
+                          <div className="flex items-center space-x-2">
+                            <Activity className="h-4 w-4 text-gray-400" />
+                            <span>Duration: {duration}</span>
+                          </div>
+                          {breakItem.notes && (
+                            <div className="flex items-center space-x-2 col-span-2">
+                              <FileText className="h-4 w-4 text-gray-400" />
+                              <span>Notes: {breakItem.notes}</span>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <div className="text-right">
+                      <div className="text-sm font-medium text-gray-900">
+                        {duration}
+                      </div>
+                      <div className="text-xs text-gray-500">
+                        Break #{index + 1}
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          ) : (
+            <div className="text-center py-8">
+              <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <Coffee className="h-8 w-8 text-gray-400" />
+              </div>
+              <h3 className="text-lg font-medium text-gray-900 mb-2">No Breaks Recorded</h3>
+              <p className="text-gray-500">No break data available for this day.</p>
+            </div>
+          )}
+        </div>
+
+        {/* Footer */}
+        <div className="flex items-center justify-between p-6 border-t border-gray-200 bg-gray-50">
+          <div className="text-sm text-gray-600">
+            Last updated: {new Date().toLocaleTimeString()}
           </div>
-        ))}
+          <button
+            onClick={onClose}
+            className="px-6 py-2 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition duration-300"
+          >
+            Close
+          </button>
+        </div>
       </div>
     </div>
   );
 };
 
-// Edit Attendance Modal Component
-const EditAttendanceModal = ({ employee, attendance, date, onSave, onClose }) => {
-  const [formData, setFormData] = useState({
-    status: attendance?.status || 'present',
-    checkIn: attendance?.checkIn !== '-' ? convertTo24Hour(attendance.checkIn) : '09:00',
-    checkOut: attendance?.checkOut !== '-' ? convertTo24Hour(attendance.checkOut) : '18:00',
-    notes: attendance?.notes || ''
-  });
+// Uninform Tracking Component
+const UnexplainedAbsenceTracking = ({ 
+  attendanceData, 
+  employees, 
+  selectedDate,
+  onMarkAsExplained,
+  onSendReminder 
+}) => {
+  const [selectedAbsences, setSelectedAbsences] = useState([]);
 
-  // Helper function to convert 12-hour to 24-hour format
-  function convertTo24Hour(time12h) {
-    if (!time12h || time12h === '-') return '09:00';
+  // Get Uninform for the selected date
+  const getUnexplainedAbsences = () => {
+    const todayAttendance = attendanceData.filter(item => item.date === selectedDate);
     
-    const [time, modifier] = time12h.split(' ');
-    let [hours, minutes] = time.split(':');
-    
-    if (hours === '12') {
-      hours = '00';
+    return employees
+      .map(employee => {
+        const attendance = todayAttendance.find(a => a.employeeId === employee.id);
+        const isAbsent = attendance?.status === 'absent';
+        const isUnexplained = isAbsent && (!attendance?.notes || attendance.notes === 'No notification' || attendance.notes.includes('No explanation'));
+        
+        return isUnexplained ? {
+          employee,
+          attendance,
+          date: selectedDate,
+          reason: 'No explanation provided'
+        } : null;
+      })
+      .filter(Boolean);
+  };
+
+  const unexplainedAbsences = getUnexplainedAbsences();
+
+  const handleSelectAll = () => {
+    if (selectedAbsences.length === unexplainedAbsences.length) {
+      setSelectedAbsences([]);
+    } else {
+      setSelectedAbsences(unexplainedAbsences.map((_, index) => index));
     }
-    
-    if (modifier === 'PM') {
-      hours = parseInt(hours, 10) + 12;
-    }
-    
-    return `${hours.toString().padStart(2, '0')}:${minutes}`;
-  }
+  };
 
-  // Helper function to convert 24-hour to 12-hour format
-  function convertTo12Hour(time24h) {
-    if (!time24h) return '09:00 AM';
-    
-    let [hours, minutes] = time24h.split(':');
-    hours = parseInt(hours, 10);
-    const modifier = hours >= 12 ? 'PM' : 'AM';
-    hours = hours % 12 || 12;
-    return `${hours}:${minutes} ${modifier}`;
-  }
+  const handleSelectAbsence = (index) => {
+    setSelectedAbsences(prev => 
+      prev.includes(index)
+        ? prev.filter(i => i !== index)
+        : [...prev, index]
+    );
+  };
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    const checkIn12h = formData.checkIn ? convertTo12Hour(formData.checkIn) : '-';
-    const checkOut12h = formData.checkOut ? convertTo12Hour(formData.checkOut) : '-';
-    onSave(formData.status, checkIn12h, checkOut12h);
+  const handleBulkMarkAsExplained = () => {
+    selectedAbsences.forEach(index => {
+      const absence = unexplainedAbsences[index];
+      onMarkAsExplained(absence.employee.id, selectedDate, 'Employee provided explanation');
+    });
+    setSelectedAbsences([]);
+  };
+
+  const handleBulkSendReminder = () => {
+    selectedAbsences.forEach(index => {
+      const absence = unexplainedAbsences[index];
+      onSendReminder(absence.employee.id, absence.employee.name);
+    });
   };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-2xl p-6 w-full max-w-md">
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="text-xl font-bold text-gray-900">Edit Attendance</h2>
-          <button onClick={onClose} className="p-2 hover:bg-gray-100 rounded-lg">
-            <X className="h-5 w-5" />
-          </button>
+    <div className="bg-white rounded-2xl p-6 border border-gray-200 shadow-sm mb-6">
+      <div className="flex items-center justify-between mb-6">
+        <div>
+          <h2 className="text-xl font-bold text-gray-900">Uninform</h2>
+          <p className="text-gray-600">
+            Employees who haven't reported their absence for {new Date(selectedDate).toLocaleDateString()}
+          </p>
         </div>
         
-        <div className="mb-4 p-4 bg-gray-50 rounded-lg">
-          <div className="flex items-center space-x-3">
-            <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center text-white font-semibold">
-              {employee.avatar}
-            </div>
-            <div>
-              <h4 className="font-medium text-gray-900">{employee.name}</h4>
-              <p className="text-sm text-gray-600">{employee.department}</p>
+        <div className="flex items-center space-x-3">
+          {selectedAbsences.length > 0 && (
+            <>
+              <button
+                onClick={handleBulkMarkAsExplained}
+                className="flex items-center px-4 py-2 bg-green-600 text-white rounded-xl hover:bg-green-700 transition duration-300"
+              >
+                <UserCheck className="h-4 w-4 mr-2" />
+                Mark as Explained ({selectedAbsences.length})
+              </button>
+              <button
+                onClick={handleBulkSendReminder}
+                className="flex items-center px-4 py-2 bg-orange-600 text-white rounded-xl hover:bg-orange-700 transition duration-300"
+              >
+                <MessageCircle className="h-4 w-4 mr-2" />
+                Send Reminder ({selectedAbsences.length})
+              </button>
+            </>
+          )}
+          <span className={`px-3 py-1 rounded-full text-sm font-medium ${
+            unexplainedAbsences.length > 0 
+              ? 'bg-red-100 text-red-800' 
+              : 'bg-green-100 text-green-800'
+          }`}>
+            {unexplainedAbsences.length} unexplained
+          </span>
+        </div>
+      </div>
+
+      {unexplainedAbsences.length > 0 ? (
+        <div className="space-y-3">
+          <div className="flex items-center p-4 bg-gray-50 rounded-xl border border-gray-200">
+            <input
+              type="checkbox"
+              checked={selectedAbsences.length === unexplainedAbsences.length && unexplainedAbsences.length > 0}
+              onChange={handleSelectAll}
+              className="h-4 w-4 text-blue-600 rounded focus:ring-blue-500 mr-4"
+            />
+            <div className="flex-1 grid grid-cols-4 gap-4 text-sm font-medium text-gray-600">
+              <span>Employee</span>
+              <span>Department</span>
+              <span>Status</span>
+              <span>Actions</span>
             </div>
           </div>
-          <div className="mt-2 text-sm text-gray-500">
-            {new Date(date).toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
+
+          {unexplainedAbsences.map((absence, index) => (
+            <div 
+              key={absence.employee.id} 
+              className="flex items-center p-4 bg-red-50 rounded-xl border border-red-200 hover:border-red-300 transition duration-300"
+            >
+              <input
+                type="checkbox"
+                checked={selectedAbsences.includes(index)}
+                onChange={() => handleSelectAbsence(index)}
+                className="h-4 w-4 text-blue-600 rounded focus:ring-blue-500 mr-4"
+              />
+              
+              <div className="flex-1 grid grid-cols-4 gap-4 items-center">
+                <div className="flex items-center space-x-3">
+                  <div className="w-10 h-10 bg-gradient-to-br from-red-500 to-red-600 rounded-xl flex items-center justify-center text-white font-semibold">
+                    {absence.employee.avatar}
+                  </div>
+                  <div>
+                    <h4 className="font-medium text-gray-900">{absence.employee.name}</h4>
+                    <p className="text-sm text-gray-600">{absence.employee.position}</p>
+                  </div>
+                </div>
+                
+                <div>
+                  <span className="text-sm text-gray-700">{absence.employee.department}</span>
+                </div>
+                
+                <div>
+                  <span className="px-2 py-1 bg-red-100 text-red-800 rounded-full text-xs font-medium">
+                    Uninform
+                  </span>
+                </div>
+                
+                <div className="flex items-center space-x-2">
+                  <button
+                    onClick={() => onMarkAsExplained(absence.employee.id, absence.date, 'Employee provided explanation')}
+                    className="flex items-center px-3 py-1 bg-green-600 text-white rounded-lg text-sm hover:bg-green-700 transition duration-200"
+                  >
+                    <UserCheck className="h-3 w-3 mr-1" />
+                    Mark Explained
+                  </button>
+                  <button
+                    onClick={() => onSendReminder(absence.employee.id, absence.employee.name)}
+                    className="flex items-center px-3 py-1 bg-orange-600 text-white rounded-lg text-sm hover:bg-orange-700 transition duration-200"
+                  >
+                    <MessageCircle className="h-3 w-3 mr-1" />
+                    Remind
+                  </button>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      ) : (
+        <div className="text-center py-8">
+          <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+            <UserCheck className="h-8 w-8 text-green-600" />
+          </div>
+          <h3 className="text-lg font-medium text-gray-900 mb-2">All absences explained</h3>
+          <p className="text-gray-500">Great! All employees have reported their absences for today.</p>
+        </div>
+      )}
+    </div>
+  );
+};
+
+// Enhanced Monthly Overview Component
+const MonthlyOverview = ({ 
+  currentDate, 
+  monthlyStats,
+  attendanceData,
+  employees,
+  onFilterChange,
+  activeFilter,
+  timeRange,
+  onTimeRangeChange,
+  filters,
+  onCustomDateRangeChange
+}) => {
+  const [showCustomRange, setShowCustomRange] = useState(false);
+  const [customRange, setCustomRange] = useState({
+    start: filters.dateRange.start,
+    end: filters.dateRange.end
+  });
+
+  const filterOptions = [
+    { value: 'attendance', label: 'Attendance', icon: Users },
+    { value: 'leaves', label: 'Leaves', icon: Calendar },
+    { value: 'overtime', label: 'Overtime', icon: Clock },
+    { value: 'late', label: 'Late Arrivals', icon: AlertCircle },
+    { value: 'stacked', label: 'All Status', icon: BarChart3 }
+  ];
+
+  const timeRangeOptions = [
+    { value: 'weekly', label: 'Weekly' },
+    { value: 'monthly', label: 'Monthly' },
+    { value: 'quarterly', label: 'Quarterly' },
+    { value: 'custom', label: 'Custom Range' }
+  ];
+
+  // Calculate data based on time range
+  const getChartData = () => {
+    switch (timeRange) {
+      case 'weekly':
+        return getWeeklyData();
+      case 'monthly':
+        return getMonthlyComparisonData();
+      case 'quarterly':
+        return getQuarterlyData();
+      case 'custom':
+        return getCustomRangeData();
+      default:
+        return getWeeklyData();
+    }
+  };
+
+  // Get data for custom date range
+  const getCustomRangeData = () => {
+    const startDate = new Date(customRange.start);
+    const endDate = new Date(customRange.end);
+    const daysDiff = Math.ceil((endDate - startDate) / (1000 * 60 * 60 * 24));
+    
+    if (daysDiff <= 7) {
+      return getDailyData(startDate, endDate);
+    } else if (daysDiff <= 31) {
+      return getWeeklyCustomData(startDate, endDate);
+    } else {
+      return getMonthlyCustomData(startDate, endDate);
+    }
+  };
+
+  // Daily data for custom range
+  const getDailyData = (startDate, endDate) => {
+    const data = [];
+    const currentDate = new Date(startDate);
+    
+    while (currentDate <= endDate) {
+      const dateStr = currentDate.toISOString().split('T')[0];
+      const dayRecords = attendanceData.filter(record => record.date === dateStr);
+      
+      let presentCount = 0;
+      let leaveCount = 0;
+      let halfdayCount = 0;
+      let absentCount = 0;
+      let overtimeHours = 0;
+      let lateCount = 0;
+      
+      dayRecords.forEach(record => {
+        if (record.status === 'present') presentCount++;
+        if (record.status === 'leave') leaveCount++;
+        if (record.status === 'halfday') halfdayCount++;
+        if (record.status === 'absent') absentCount++;
+        if (record.overtime && record.overtime !== '0.0') {
+          overtimeHours += parseFloat(record.overtime);
+        }
+        if (record.late && record.late !== '-') lateCount++;
+      });
+      
+      if (activeFilter === 'stacked') {
+        data.push({
+          name: currentDate.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' }),
+          present: presentCount,
+          leave: leaveCount,
+          halfday: halfdayCount,
+          absent: absentCount,
+          color: '#10b981'
+        });
+      } else {
+        let value, color;
+        switch (activeFilter) {
+          case 'attendance':
+            value = presentCount;
+            color = '#10b981';
+            break;
+          case 'leaves':
+            value = leaveCount;
+            color = '#f59e0b';
+            break;
+          case 'overtime':
+            value = Math.round(overtimeHours);
+            color = '#3b82f6';
+            break;
+          case 'late':
+            value = lateCount;
+            color = '#ef4444';
+            break;
+          default:
+            value = presentCount;
+            color = '#10b981';
+        }
+        
+        data.push({
+          name: currentDate.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' }),
+          value: value,
+          color: color
+        });
+      }
+      
+      currentDate.setDate(currentDate.getDate() + 1);
+    }
+    
+    return data;
+  };
+
+  // Weekly data for custom range
+  const getWeeklyCustomData = (startDate, endDate) => {
+    const data = [];
+    const currentDate = new Date(startDate);
+    let weekNumber = 1;
+    
+    while (currentDate <= endDate) {
+      const weekStart = new Date(currentDate);
+      const weekEnd = new Date(currentDate);
+      weekEnd.setDate(weekEnd.getDate() + 6);
+      
+      if (weekEnd > endDate) weekEnd.setTime(endDate.getTime());
+      
+      let presentCount = 0;
+      let leaveCount = 0;
+      let halfdayCount = 0;
+      let absentCount = 0;
+      let overtimeHours = 0;
+      let lateCount = 0;
+      
+      const tempDate = new Date(weekStart);
+      while (tempDate <= weekEnd) {
+        const dateStr = tempDate.toISOString().split('T')[0];
+        const dayRecords = attendanceData.filter(record => record.date === dateStr);
+        
+        dayRecords.forEach(record => {
+          if (record.status === 'present') presentCount++;
+          if (record.status === 'leave') leaveCount++;
+          if (record.status === 'halfday') halfdayCount++;
+          if (record.status === 'absent') absentCount++;
+          if (record.overtime && record.overtime !== '0.0') {
+            overtimeHours += parseFloat(record.overtime);
+          }
+          if (record.late && record.late !== '-') lateCount++;
+        });
+        
+        tempDate.setDate(tempDate.getDate() + 1);
+      }
+      
+      if (activeFilter === 'stacked') {
+        data.push({
+          name: `Week ${weekNumber}`,
+          present: presentCount,
+          leave: leaveCount,
+          halfday: halfdayCount,
+          absent: absentCount,
+          color: '#10b981'
+        });
+      } else {
+        let value, color;
+        switch (activeFilter) {
+          case 'attendance':
+            value = presentCount;
+            color = '#10b981';
+            break;
+          case 'leaves':
+            value = leaveCount;
+            color = '#f59e0b';
+            break;
+          case 'overtime':
+            value = Math.round(overtimeHours);
+            color = '#3b82f6';
+            break;
+          case 'late':
+            value = lateCount;
+            color = '#ef4444';
+            break;
+          default:
+            value = presentCount;
+            color = '#10b981';
+        }
+        
+        data.push({
+          name: `Week ${weekNumber}`,
+          value: value,
+          color: color
+        });
+      }
+      
+      weekNumber++;
+      currentDate.setDate(currentDate.getDate() + 7);
+    }
+    
+    return data;
+  };
+
+  // Monthly data for custom range
+  const getMonthlyCustomData = (startDate, endDate) => {
+    const data = [];
+    const currentDate = new Date(startDate.getFullYear(), startDate.getMonth(), 1);
+    
+    while (currentDate <= endDate) {
+      const monthStart = new Date(currentDate);
+      const monthEnd = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0);
+      if (monthEnd > endDate) monthEnd.setTime(endDate.getTime());
+      
+      let presentCount = 0;
+      let leaveCount = 0;
+      let halfdayCount = 0;
+      let absentCount = 0;
+      let overtimeHours = 0;
+      let lateCount = 0;
+      
+      const tempDate = new Date(monthStart);
+      while (tempDate <= monthEnd) {
+        const dateStr = tempDate.toISOString().split('T')[0];
+        const dayRecords = attendanceData.filter(record => record.date === dateStr);
+        
+        dayRecords.forEach(record => {
+          if (record.status === 'present') presentCount++;
+          if (record.status === 'leave') leaveCount++;
+          if (record.status === 'halfday') halfdayCount++;
+          if (record.status === 'absent') absentCount++;
+          if (record.overtime && record.overtime !== '0.0') {
+            overtimeHours += parseFloat(record.overtime);
+          }
+          if (record.late && record.late !== '-') lateCount++;
+        });
+        
+        tempDate.setDate(tempDate.getDate() + 1);
+      }
+      
+      if (activeFilter === 'stacked') {
+        data.push({
+          name: currentDate.toLocaleDateString('en-US', { month: 'short', year: 'numeric' }),
+          present: presentCount,
+          leave: leaveCount,
+          halfday: halfdayCount,
+          absent: absentCount,
+          color: '#10b981'
+        });
+      } else {
+        let value, color;
+        switch (activeFilter) {
+          case 'attendance':
+            value = presentCount;
+            color = '#10b981';
+            break;
+          case 'leaves':
+            value = leaveCount;
+            color = '#f59e0b';
+            break;
+          case 'overtime':
+            value = Math.round(overtimeHours);
+            color = '#3b82f6';
+            break;
+          case 'late':
+            value = lateCount;
+            color = '#ef4444';
+            break;
+          default:
+            value = presentCount;
+            color = '#10b981';
+        }
+        
+        data.push({
+          name: currentDate.toLocaleDateString('en-US', { month: 'short', year: 'numeric' }),
+          value: value,
+          color: color
+        });
+      }
+      
+      currentDate.setMonth(currentDate.getMonth() + 1);
+    }
+    
+    return data;
+  };
+
+  // Enhanced weekly data calculation with stacked bars
+  const getWeeklyData = () => {
+    const weeklyData = [];
+    const currentMonth = currentDate.getMonth();
+    const currentYear = currentDate.getFullYear();
+    
+    // Get all dates for the current month
+    const monthDates = [];
+    const firstDay = new Date(currentYear, currentMonth, 1);
+    const lastDay = new Date(currentYear, currentMonth + 1, 0);
+    
+    for (let d = new Date(firstDay); d <= lastDay; d.setDate(d.getDate() + 1)) {
+      monthDates.push(new Date(d));
+    }
+    
+    // Group by weeks
+    const weeks = [];
+    let currentWeek = [];
+    
+    monthDates.forEach(date => {
+      currentWeek.push(date);
+      if (date.getDay() === 6 || date.getDate() === lastDay.getDate()) {
+        weeks.push([...currentWeek]);
+        currentWeek = [];
+      }
+    });
+    
+    // Calculate metrics for each week
+    weeks.forEach((week, weekIndex) => {
+      const weekDates = week.map(d => d.toISOString().split('T')[0]);
+      
+      let presentCount = 0;
+      let leaveCount = 0;
+      let halfdayCount = 0;
+      let absentCount = 0;
+      let overtimeHours = 0;
+      let lateCount = 0;
+      
+      weekDates.forEach(date => {
+        const dayRecords = attendanceData.filter(record => record.date === date);
+        
+        dayRecords.forEach(record => {
+          if (record.status === 'present') presentCount++;
+          if (record.status === 'leave') leaveCount++;
+          if (record.status === 'halfday') halfdayCount++;
+          if (record.status === 'absent') absentCount++;
+          if (record.overtime && record.overtime !== '0.0') {
+            overtimeHours += parseFloat(record.overtime);
+          }
+          if (record.late && record.late !== '-') lateCount++;
+        });
+      });
+      
+      if (activeFilter === 'stacked') {
+        weeklyData.push({
+          name: `Week ${weekIndex + 1}`,
+          present: presentCount,
+          leave: leaveCount,
+          halfday: halfdayCount,
+          absent: absentCount,
+          color: '#10b981'
+        });
+      } else {
+        let value, color;
+        switch (activeFilter) {
+          case 'attendance':
+            value = presentCount;
+            color = '#10b981';
+            break;
+          case 'leaves':
+            value = leaveCount;
+            color = '#f59e0b';
+            break;
+          case 'overtime':
+            value = Math.round(overtimeHours);
+            color = '#3b82f6';
+            break;
+          case 'late':
+            value = lateCount;
+            color = '#ef4444';
+            break;
+          default:
+            value = presentCount;
+            color = '#10b981';
+        }
+        
+        weeklyData.push({
+          name: `Week ${weekIndex + 1}`,
+          value: value,
+          color: color
+        });
+      }
+    });
+    
+    // Fill remaining weeks with zero values if needed
+    while (weeklyData.length < 5) {
+      if (activeFilter === 'stacked') {
+        weeklyData.push({
+          name: `Week ${weeklyData.length + 1}`,
+          present: 0,
+          leave: 0,
+          halfday: 0,
+          absent: 0,
+          color: '#10b981'
+        });
+      } else {
+        weeklyData.push({
+          name: `Week ${weeklyData.length + 1}`,
+          value: 0,
+          color: activeFilter === 'attendance' ? '#10b981' : 
+                 activeFilter === 'leaves' ? '#f59e0b' :
+                 activeFilter === 'overtime' ? '#3b82f6' : '#ef4444'
+        });
+      }
+    }
+    
+    return weeklyData.slice(0, 5);
+  };
+
+  // Calculate monthly comparison data
+  const getMonthlyComparisonData = () => {
+    const currentMonth = currentDate.getMonth();
+    const prevMonthPresent = Math.round(monthlyStats.present * 0.85);
+    const prevMonthLeaves = Math.round(monthlyStats.leave * 0.9);
+    const prevMonthOvertime = 42;
+    const prevMonthLate = Math.round(monthlyStats.monthlyLate * 1.1);
+    
+    let currentValue, previousValue;
+    
+    switch (activeFilter) {
+      case 'attendance':
+        currentValue = monthlyStats.present;
+        previousValue = prevMonthPresent;
+        break;
+      case 'leaves':
+        currentValue = monthlyStats.leave;
+        previousValue = prevMonthLeaves;
+        break;
+      case 'overtime':
+        currentValue = 53;
+        previousValue = prevMonthOvertime;
+        break;
+      case 'late':
+        currentValue = monthlyStats.monthlyLate;
+        previousValue = prevMonthLate;
+        break;
+      case 'stacked':
+        // For stacked view, return current month data
+        return [{
+          name: 'Current',
+          present: monthlyStats.present,
+          leave: monthlyStats.leave,
+          halfday: monthlyStats.halfday,
+          absent: monthlyStats.absent,
+          color: '#10b981'
+        }];
+      default:
+        currentValue = monthlyStats.present;
+        previousValue = prevMonthPresent;
+    }
+    
+    return [
+      {
+        name: 'Previous',
+        value: previousValue,
+        color: '#9ca3af'
+      },
+      {
+        name: 'Current',
+        value: currentValue,
+        color: activeFilter === 'attendance' ? '#10b981' : 
+               activeFilter === 'leaves' ? '#f59e0b' :
+               activeFilter === 'overtime' ? '#3b82f6' : '#ef4444'
+      }
+    ];
+  };
+
+  // Calculate quarterly data
+  const getQuarterlyData = () => {
+    const quarter = Math.floor(currentDate.getMonth() / 3) + 1;
+    const quarterMonths = [(quarter - 1) * 3, (quarter - 1) * 3 + 1, (quarter - 1) * 3 + 2];
+    const currentYear = currentDate.getFullYear();
+    
+    const quarterlyData = quarterMonths.map(month => {
+      const monthData = attendanceData.filter(record => {
+        const recordDate = new Date(record.date);
+        return recordDate.getMonth() === month && recordDate.getFullYear() === currentYear;
+      });
+      
+      let presentCount = 0;
+      let leaveCount = 0;
+      let halfdayCount = 0;
+      let absentCount = 0;
+      let overtimeHours = 0;
+      let lateCount = 0;
+      
+      monthData.forEach(record => {
+        if (record.status === 'present') presentCount++;
+        if (record.status === 'leave') leaveCount++;
+        if (record.status === 'halfday') halfdayCount++;
+        if (record.status === 'absent') absentCount++;
+        if (record.overtime && record.overtime !== '0.0') {
+          overtimeHours += parseFloat(record.overtime);
+        }
+        if (record.late && record.late !== '-') lateCount++;
+      });
+      
+      const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+      
+      if (activeFilter === 'stacked') {
+        return {
+          name: monthNames[month],
+          present: presentCount,
+          leave: leaveCount,
+          halfday: halfdayCount,
+          absent: absentCount,
+          color: '#10b981'
+        };
+      } else {
+        let value, color;
+        switch (activeFilter) {
+          case 'attendance':
+            value = presentCount;
+            color = '#10b981';
+            break;
+          case 'leaves':
+            value = leaveCount;
+            color = '#f59e0b';
+            break;
+          case 'overtime':
+            value = Math.round(overtimeHours);
+            color = '#3b82f6';
+            break;
+          case 'late':
+            value = lateCount;
+            color = '#ef4444';
+            break;
+          default:
+            value = presentCount;
+            color = '#10b981';
+        }
+        
+        return {
+          name: monthNames[month],
+          value: value,
+          color: color
+        };
+      }
+    });
+    
+    return quarterlyData;
+  };
+
+  const getChartTitle = () => {
+    const baseTitle = activeFilter === 'stacked' ? 'All Status' : 
+                     activeFilter.charAt(0).toUpperCase() + activeFilter.slice(1);
+    
+    switch (timeRange) {
+      case 'weekly':
+        return `Weekly ${baseTitle} Trend`;
+      case 'monthly':
+        return `Monthly ${baseTitle} Comparison`;
+      case 'quarterly':
+        return `Quarterly ${baseTitle} Overview`;
+      case 'custom':
+        return `Custom Range ${baseTitle} Analysis`;
+      default:
+        return `${baseTitle} Distribution`;
+    }
+  };
+
+  const getStatsCards = () => {
+    const weeklyData = getWeeklyData();
+    const currentWeekValue = weeklyData[weeklyData.length - 1]?.value || 0;
+    const previousWeekValue = weeklyData[weeklyData.length - 2]?.value || 0;
+    const trend = currentWeekValue - previousWeekValue;
+    const trendPercentage = previousWeekValue > 0 ? ((trend / previousWeekValue) * 100).toFixed(1) : 0;
+
+    switch (activeFilter) {
+      case 'attendance':
+        return [
+          { 
+            label: 'Current Week', 
+            value: `${currentWeekValue}`, 
+            color: 'text-green-600', 
+            bg: 'bg-green-50',
+            trend: trend,
+            trendText: `${trend >= 0 ? '+' : ''}${trendPercentage}% from last week`
+          },
+          { 
+            label: 'Monthly Average', 
+            value: `${monthlyStats.attendanceRate}%`, 
+            color: 'text-blue-600', 
+            bg: 'bg-blue-50' 
+          },
+          { 
+            label: 'Total Present', 
+            value: monthlyStats.present, 
+            color: 'text-emerald-600', 
+            bg: 'bg-emerald-50' 
+          },
+          { 
+            label: 'Attendance Goal', 
+            value: '95%', 
+            color: 'text-purple-600', 
+            bg: 'bg-purple-50' 
+          }
+        ];
+      case 'leaves':
+        return [
+          { 
+            label: 'Current Week', 
+            value: currentWeekValue, 
+            color: 'text-orange-600', 
+            bg: 'bg-orange-50',
+            trend: trend,
+            trendText: `${trend >= 0 ? '+' : ''}${trend} from last week`
+          },
+          { 
+            label: 'Monthly Total', 
+            value: monthlyStats.leave, 
+            color: 'text-amber-600', 
+            bg: 'bg-amber-50' 
+          },
+          { 
+            label: 'Sick Leaves', 
+            value: Math.floor(monthlyStats.leave * 0.4), 
+            color: 'text-red-600', 
+            bg: 'bg-red-50' 
+          },
+          { 
+            label: 'Casual Leaves', 
+            value: Math.floor(monthlyStats.leave * 0.6), 
+            color: 'text-yellow-600', 
+            bg: 'bg-yellow-50' 
+          }
+        ];
+      case 'overtime':
+        return [
+          { 
+            label: 'Current Week', 
+            value: `${currentWeekValue}h`, 
+            color: 'text-blue-600', 
+            bg: 'bg-blue-50',
+            trend: trend,
+            trendText: `${trend >= 0 ? '+' : ''}${trend}h from last week`
+          },
+          { 
+            label: 'Monthly Total', 
+            value: '53h', 
+            color: 'text-indigo-600', 
+            bg: 'bg-indigo-50' 
+          },
+          { 
+            label: 'Avg Daily OT', 
+            value: '2.4h', 
+            color: 'text-cyan-600', 
+            bg: 'bg-cyan-50' 
+          },
+          { 
+            label: 'OT Cost', 
+            value: '$1,325', 
+            color: 'text-violet-600', 
+            bg: 'bg-violet-50' 
+          }
+        ];
+      case 'late':
+        return [
+          { 
+            label: 'Current Week', 
+            value: currentWeekValue, 
+            color: 'text-red-600', 
+            bg: 'bg-red-50',
+            trend: trend,
+            trendText: `${trend >= 0 ? '+' : ''}${trend} from last week`
+          },
+          { 
+            label: 'Monthly Total', 
+            value: monthlyStats.monthlyLate, 
+            color: 'text-rose-600', 
+            bg: 'bg-rose-50' 
+          },
+          { 
+            label: 'On-time Rate', 
+            value: '94.2%', 
+            color: 'text-green-600', 
+            bg: 'bg-green-50' 
+          },
+          { 
+            label: 'Most Late Dept', 
+            value: 'Sales', 
+            color: 'text-orange-600', 
+            bg: 'bg-orange-50' 
+          }
+        ];
+      case 'stacked':
+        return [
+          { 
+            label: 'Total Present', 
+            value: monthlyStats.present, 
+            color: 'text-green-600', 
+            bg: 'bg-green-50'
+          },
+          { 
+            label: 'Total Leaves', 
+            value: monthlyStats.leave, 
+            color: 'text-orange-600', 
+            bg: 'bg-orange-50' 
+          },
+          { 
+            label: 'Half Days', 
+            value: monthlyStats.halfday, 
+            color: 'text-blue-600', 
+            bg: 'bg-blue-50' 
+          },
+          { 
+            label: 'Absent', 
+            value: monthlyStats.absent, 
+            color: 'text-red-600', 
+            bg: 'bg-red-50' 
+          }
+        ];
+      default:
+        return [];
+    }
+  };
+
+  const handleCustomRangeApply = () => {
+    onCustomDateRangeChange(customRange);
+    setShowCustomRange(false);
+  };
+
+  const chartData = getChartData();
+  const isStacked = activeFilter === 'stacked';
+  const statsCards = getStatsCards();
+
+  return (
+    <div className="bg-white rounded-2xl p-6 border border-gray-200 shadow-sm mb-6">
+      <div className="flex items-center justify-between mb-6">
+        <div>
+          <h2 className="text-xl font-bold text-gray-900">Monthly Overview</h2>
+          <p className="text-gray-600">
+            {currentDate.toLocaleString('default', { month: 'long', year: 'numeric' })} Performance Analytics
+          </p>
+        </div>
+        
+        <div className="flex items-center space-x-4">
+          {/* Time Range Filter */}
+          <div className="flex items-center space-x-2">
+            <div className="flex bg-gray-100 rounded-lg p-1">
+              {timeRangeOptions.map(option => {
+                const IconComponent = option.value === 'weekly' ? Calendar : 
+                                    option.value === 'monthly' ? BarChart3 : 
+                                    option.value === 'quarterly' ? Users : Filter;
+                return (
+                  <button
+                    key={option.value}
+                    onClick={() => {
+                      onTimeRangeChange(option.value);
+                      if (option.value === 'custom') {
+                        setShowCustomRange(true);
+                      }
+                    }}
+                    className={`flex items-center px-4 py-2 rounded-md text-sm font-medium transition duration-300 ${
+                      timeRange === option.value 
+                        ? 'bg-white text-gray-900 shadow-sm' 
+                        : 'text-gray-600 hover:text-gray-900'
+                    }`}
+                  >
+                    <IconComponent className="h-4 w-4 mr-2" />
+                    {option.label}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+          
+          {/* Data Type Filter */}
+          <div className="flex bg-gray-100 rounded-lg p-1">
+            {filterOptions.map(option => {
+              const IconComponent = option.icon;
+              return (
+                <button
+                  key={option.value}
+                  onClick={() => onFilterChange(option.value)}
+                  className={`flex items-center px-4 py-2 rounded-md text-sm font-medium transition duration-300 ${
+                    activeFilter === option.value 
+                      ? 'bg-white text-gray-900 shadow-sm' 
+                      : 'text-gray-600 hover:text-gray-900'
+                  }`}
+                >
+                  <IconComponent className="h-4 w-4 mr-2" />
+                  {option.label}
+                </button>
+              );
+            })}
           </div>
         </div>
+      </div>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Status</label>
-            <select
-              value={formData.status}
-              onChange={(e) => setFormData(prev => ({ ...prev, status: e.target.value }))}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+      {/* Custom Date Range Picker */}
+      {showCustomRange && (
+        <div className="mb-6 p-4 bg-blue-50 rounded-xl border border-blue-200">
+          <div className="flex items-center justify-between mb-3">
+            <h3 className="text-sm font-semibold text-blue-900">Custom Date Range</h3>
+            <button 
+              onClick={() => setShowCustomRange(false)}
+              className="text-blue-600 hover:text-blue-800"
             >
-              <option value="present">Present</option>
-              <option value="absent">Absent</option>
-              <option value="leave">On Leave</option>
-              <option value="halfday">Half Day</option>
-            </select>
+              <X className="h-4 w-4" />
+            </button>
           </div>
-
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Check-in</label>
+              <label className="block text-xs font-medium text-blue-700 mb-1">Start Date</label>
               <input
-                type="time"
-                value={formData.checkIn}
-                onChange={(e) => setFormData(prev => ({ ...prev, checkIn: e.target.value }))}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                type="date"
+                value={customRange.start}
+                onChange={(e) => setCustomRange(prev => ({ ...prev, start: e.target.value }))}
+                className="w-full px-3 py-2 border border-blue-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Check-out</label>
+              <label className="block text-xs font-medium text-blue-700 mb-1">End Date</label>
               <input
-                type="time"
-                value={formData.checkOut}
-                onChange={(e) => setFormData(prev => ({ ...prev, checkOut: e.target.value }))}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                type="date"
+                value={customRange.end}
+                onChange={(e) => setCustomRange(prev => ({ ...prev, end: e.target.value }))}
+                className="w-full px-3 py-2 border border-blue-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               />
             </div>
           </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Notes</label>
-            <textarea
-              value={formData.notes}
-              onChange={(e) => setFormData(prev => ({ ...prev, notes: e.target.value }))}
-              rows={3}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              placeholder="Add any notes about this attendance record..."
-            />
-          </div>
-
-          <div className="flex space-x-4 pt-4">
+          <div className="flex justify-end space-x-2 mt-3">
             <button
-              type="button"
-              onClick={onClose}
-              className="flex-1 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition duration-300"
+              onClick={() => setShowCustomRange(false)}
+              className="px-3 py-1 text-sm border border-gray-300 rounded-lg hover:bg-gray-50"
             >
               Cancel
             </button>
             <button
-              type="submit"
-              className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition duration-300"
+              onClick={handleCustomRangeApply}
+              className="px-3 py-1 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700"
             >
-              Save Changes
+              Apply Range
             </button>
           </div>
-        </form>
+        </div>
+      )}
+
+      {/* Charts Grid */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Main Column Chart */}
+        <div className="lg:col-span-2 p-4 bg-gray-50 rounded-xl border border-gray-200">
+          <ColumnChartComponent 
+            data={chartData}
+            title={getChartTitle()}
+            height={300}
+            stacked={isStacked}
+          />
+        </div>
       </div>
     </div>
   );
 };
 
-// Employee Detail View Component
-const EmployeeDetailView = ({ employee, onBack, attendanceData, holidays, employeeLeaves, onManualAttendance }) => {
+// Enhanced Employee Detail View Component with Notes Editing
+const EmployeeDetailView = ({ 
+  employee, 
+  onBack, 
+  attendanceData, 
+  holidays, 
+  employeeLeaves, 
+  onMarkAsExplained,
+  onUpdateAttendanceNotes 
+}) => {
   const [isEditingAttendance, setIsEditingAttendance] = useState(null);
+  const [selectedDateBreaks, setSelectedDateBreaks] = useState([]);
+  const [isBreakModalOpen, setIsBreakModalOpen] = useState(false);
+  const [selectedBreakDate, setSelectedBreakDate] = useState('');
+  const [editingNotes, setEditingNotes] = useState('');
+
+  // Get employee's breaks for a specific date
+  const getEmployeeBreaksForDate = (employeeId, date) => {
+    const breakTypes = ['Cigarette', 'Pray', 'lunch', 'dinner', 'washroom', 'short'];
+    const breakCount = Math.floor(Math.random() * 4) + 1;
+    
+    return Array.from({ length: breakCount }, (_, index) => {
+      const breakType = breakTypes[Math.floor(Math.random() * breakTypes.length)];
+      const breakStartHour = 9 + Math.floor(Math.random() * 8);
+      const breakStartMinute = Math.floor(Math.random() * 60);
+      const breakDuration = [5, 10, 15, 30, 45, 60][Math.floor(Math.random() * 6)];
+      
+      const breakStart = `${breakStartHour.toString().padStart(2, '0')}:${breakStartMinute.toString().padStart(2, '0')}`;
+      const breakEndHour = breakStartHour + Math.floor(breakDuration / 60);
+      const breakEndMinute = (breakStartMinute + (breakDuration % 60)) % 60;
+      const breakEnd = `${breakEndHour.toString().padStart(2, '0')}:${breakEndMinute.toString().padStart(2, '0')}`;
+      
+      return {
+        id: `${employeeId}-${date}-break-${index}`,
+        employeeId,
+        date,
+        type: breakType,
+        breakStart,
+        breakEnd,
+        duration: breakDuration,
+        notes: BREAK_TYPES[breakType].label
+      };
+    });
+  };
+
+  const handleViewBreaks = (date) => {
+    const breaks = getEmployeeBreaksForDate(employee.id, date);
+    setSelectedDateBreaks(breaks);
+    setSelectedBreakDate(date);
+    setIsBreakModalOpen(true);
+  };
 
   const getEmployeeAttendance = (employeeId) => {
     return attendanceData.filter(att => att.employeeId === employeeId);
@@ -234,18 +1497,42 @@ const EmployeeDetailView = ({ employee, onBack, attendanceData, holidays, employ
     };
   };
 
+  const getUnexplainedAbsences = () => {
+    return attendanceData
+      .filter(att => 
+        att.employeeId === employee.id && 
+        att.status === 'absent' && 
+        (!att.notes || att.notes === 'No notification' || att.notes.includes('No explanation'))
+      )
+      .slice(0, 5);
+  };
+
+  const handleSaveNotes = (recordId, notes) => {
+    onUpdateAttendanceNotes(recordId, notes);
+    setIsEditingAttendance(null);
+    setEditingNotes('');
+  };
+
+  const handleEditNotes = (record) => {
+    setIsEditingAttendance(record.id);
+    setEditingNotes(record.notes || '');
+  };
+
   const empAttendance = getEmployeeAttendance(employee.id);
   const empStats = getEmployeeStats(employee.id);
   const empLeaves = employeeLeaves.find(l => l.employeeId === employee.id);
-
-  const handleSaveAttendance = (record, newStatus, checkIn, checkOut) => {
-    onManualAttendance(employee.id, record.date, newStatus, checkIn, checkOut);
-    setIsEditingAttendance(null);
-  };
+  const unexplainedAbsences = getUnexplainedAbsences();
 
   return (
     <div className="bg-white rounded-2xl border border-gray-200 shadow-sm">
-      {/* Header */}
+      <BreakDetailsModal
+        isOpen={isBreakModalOpen}
+        onClose={() => setIsBreakModalOpen(false)}
+        breaks={selectedDateBreaks}
+        date={selectedBreakDate}
+        employeeName={employee.name}
+      />
+
       <div className="p-6 border-b border-gray-200">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-4">
@@ -277,7 +1564,6 @@ const EmployeeDetailView = ({ employee, onBack, attendanceData, holidays, employ
       </div>
 
       <div className="p-6">
-        {/* Quick Stats */}
         <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4 mb-8">
           <div className="bg-green-50 rounded-xl p-4 text-center">
             <div className="text-2xl font-bold text-green-600">{empStats.present}</div>
@@ -305,165 +1591,388 @@ const EmployeeDetailView = ({ employee, onBack, attendanceData, holidays, employ
           </div>
         </div>
 
-        {/* Leaves Summary */}
-        <div className="bg-gray-50 rounded-xl p-6 mb-8">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">Leaves Summary</h3>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <div className="text-center">
-              <div className="text-2xl font-bold text-blue-600">{employee.totalLeaves}</div>
-              <div className="text-sm text-gray-600">Total Leaves</div>
+        {/* Uninform Section */}
+        {unexplainedAbsences.length > 0 && (
+          <div className="mb-8">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-semibold text-red-900">Uninform</h3>
+              <span className="px-3 py-1 bg-red-100 text-red-800 rounded-full text-sm font-medium">
+                {unexplainedAbsences.length} need explanation
+              </span>
             </div>
-            <div className="text-center">
-              <div className="text-2xl font-bold text-orange-600">{employee.leavesTaken}</div>
-              <div className="text-sm text-gray-600">Leaves Taken</div>
+            
+            <div className="space-y-3">
+              {unexplainedAbsences.map(absence => (
+                <div key={absence.id} className="flex items-center justify-between p-4 bg-red-50 rounded-xl border border-red-200">
+                  <div className="flex items-center space-x-4">
+                    <div className="w-3 h-3 bg-red-500 rounded-full"></div>
+                    <div>
+                      <div className="font-medium text-gray-900">
+                        {new Date(absence.date).toLocaleDateString('en-US', { 
+                          weekday: 'short', 
+                          month: 'short', 
+                          day: 'numeric' 
+                        })}
+                      </div>
+                      <div className="text-sm text-gray-600">
+                        No explanation provided
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-center space-x-2">
+                    <button
+                      onClick={() => onMarkAsExplained(employee.id, absence.date, 'Employee provided explanation later')}
+                      className="flex items-center px-3 py-1 bg-green-600 text-white rounded-lg text-sm hover:bg-green-700 transition duration-200"
+                    >
+                      <UserCheck className="h-3 w-3 mr-1" />
+                      Mark Explained
+                    </button>
+                  </div>
+                </div>
+              ))}
             </div>
-            <div className="text-center">
-              <div className="text-2xl font-bold text-green-600">{employee.leavesRemaining}</div>
-              <div className="text-sm text-gray-600">Leaves Remaining</div>
-            </div>
-            <div className="text-center">
-              <div className="text-2xl font-bold text-purple-600">
-                {empLeaves ? `${empLeaves.casualLeaves}C ${empLeaves.sickLeaves}S ${empLeaves.annualLeaves}A` : 'N/A'}
+          </div>
+        )}
+
+        <div className="bg-white rounded-2xl p-6 mb-8 border border-gray-200 shadow-sm">
+          <h3 className="text-lg font-semibold text-gray-900 mb-6">Leaves Summary</h3>
+          
+          {/* Overall Leaves Stats */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+            <div className="bg-blue-50 rounded-xl p-4 border border-blue-200">
+              <div className="text-center">
+                <div className="text-2xl font-bold text-blue-600">{employee.totalLeaves}</div>
+                <div className="text-xs text-blue-700 font-medium mt-1">Total Leaves</div>
               </div>
-              <div className="text-sm text-gray-600">Breakdown</div>
+            </div>
+            <div className="bg-orange-50 rounded-xl p-4 border border-orange-200">
+              <div className="text-center">
+                <div className="text-2xl font-bold text-orange-600">{employee.leavesTaken}</div>
+                <div className="text-xs text-orange-700 font-medium mt-1">Leaves Taken</div>
+              </div>
+            </div>
+            <div className="bg-green-50 rounded-xl p-4 border border-green-200">
+              <div className="text-center">
+                <div className="text-2xl font-bold text-green-600">{employee.leavesRemaining}</div>
+                <div className="text-xs text-green-700 font-medium mt-1">Leaves Remaining</div>
+              </div>
+            </div>
+            <div className="bg-purple-50 rounded-xl p-4 border border-purple-200">
+              <div className="text-center">
+                <div className="text-2xl font-bold text-purple-600">
+                  {((employee.leavesTaken / employee.totalLeaves) * 100).toFixed(0)}%
+                </div>
+                <div className="text-xs text-purple-700 font-medium mt-1">Utilization</div>
+              </div>
+            </div>
+          </div>
+
+          {/* Detailed Leave Breakdown */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {/* Casual Leaves Block */}
+            <div className="bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl p-6 text-white shadow-lg hover:shadow-xl transition-shadow duration-300">
+              <div className="flex items-center justify-between mb-4">
+                <h4 className="font-bold text-lg">Casual Leaves</h4>
+                <div className="bg-white/20 backdrop-blur-md rounded-full p-3">
+                  <Calendar className="h-5 w-5 text-white" />
+                </div>
+              </div>
+              
+              <div className="space-y-3">
+                <div className="bg-white/20 backdrop-blur-sm rounded-xl p-3">
+                  <div className="text-sm text-blue-100 mb-1">Total / Used</div>
+                  <div className="text-3xl font-bold">{empLeaves?.casualLeavesTaken || 0}/{empLeaves?.casualLeaves || 8}</div>
+                </div>
+                
+                
+                
+                
+              </div>
+            </div>
+
+            {/* Sick Leaves Block */}
+            <div className="bg-gradient-to-br from-red-500 to-red-600 rounded-2xl p-6 text-white shadow-lg hover:shadow-xl transition-shadow duration-300">
+              <div className="flex items-center justify-between mb-4">
+                <h4 className="font-bold text-lg">Sick Leaves</h4>
+                <div className="bg-white/20 backdrop-blur-md rounded-full p-3">
+                  
+                </div>
+              </div>
+              
+              <div className="space-y-3">
+                <div className="bg-white/20 backdrop-blur-sm rounded-xl p-3">
+                  <div className="text-sm text-red-100 mb-1">Total / Used</div>
+                  <div className="text-3xl font-bold">{empLeaves?.sickLeavesTaken || 0}/{empLeaves?.sickLeaves || 8}</div>
+                </div>
+                
+                
+                
+                
+              </div>
+            </div>
+
+            {/* Annual Leaves Block */}
+            <div className="bg-gradient-to-br from-green-500 to-green-600 rounded-2xl p-6 text-white shadow-lg hover:shadow-xl transition-shadow duration-300">
+              <div className="flex items-center justify-between mb-4">
+                <h4 className="font-bold text-lg">Annual Leaves</h4>
+                <div className="bg-white/20 backdrop-blur-md rounded-full p-3">
+                  <Zap className="h-5 w-5 text-white" />
+                </div>
+              </div>
+              
+              <div className="space-y-3">
+                <div className="bg-white/20 backdrop-blur-sm rounded-xl p-3">
+                  <div className="text-sm text-green-100 mb-1">Total / Used</div>
+                  <div className="text-3xl font-bold">{empLeaves?.annualLeavesTaken || 0}/{empLeaves?.annualLeaves || 12}</div>
+                </div>
+                
+                
+                
+                
+              </div>
             </div>
           </div>
         </div>
 
-          <div className="grid grid-cols-7 gap-2 mb-4">
+        <div className="mb-8">
+          <h3 className="text-lg font-semibold text-gray-900 mb-4">Monthly Attendance</h3>
+          <div className="grid grid-cols-7 gap-5 mb-8">
             {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(day => (
-              <div key={day} className="text-center text-sm font-medium text-gray-500 py-2">
+              <div
+                key={day}
+                className="text-center text-s font-bold tracking-wide uppercase text-black py-2"
+              >
                 {day}
               </div>
             ))}
             
             {empAttendance.map((dayData) => {
               const isHoliday = holidays.some(h => h.date === dayData.date);
+              const isUnexplained = dayData.status === 'absent' && (!dayData.notes || dayData.notes === 'No notification');
+              const date = new Date(dayData.date);
+              const isWeekend = date.getDay() === 0 || date.getDay() === 6;
+              
+              // Calculate a simple status indicator for progress
+              const statusPercent = isHoliday ? 0 : isUnexplained ? 20 : dayData.status === 'present' ? 100 : dayData.status === 'halfday' ? 50 : 0;
+              
               return (
-                <div 
-                  key={dayData.id} 
+                <div
+                  key={dayData.id}
                   className={`
-                    text-center p-2 rounded-lg border text-sm font-medium cursor-pointer hover:scale-105 transition-transform relative
-                    ${isHoliday ? 'bg-purple-50 border-purple-200 text-purple-700' :
-                      dayData.status === 'present' ? 'bg-green-50 border-green-200 text-green-700' :
-                      dayData.status === 'leave' ? 'bg-orange-50 border-orange-200 text-orange-700' :
-                      dayData.status === 'halfday' ? 'bg-blue-50 border-blue-200 text-blue-700' :
-                      dayData.status === 'absent' ? 'bg-red-50 border-red-200 text-red-700' :
-                      'bg-gray-50 border-gray-200 text-gray-500'
-                    }
+                    group relative p-4 rounded-2xl cursor-pointer border transition-all duration-300 min-h-[110px]
+                    bg-white/80 backdrop-blur-md shadow-sm
+                    hover:shadow-lg hover:-translate-y-0.5
+                    ${isWeekend ? 'border-gray-300 bg-gray-100/80' :
+                      isHoliday ? 'border-purple-200 bg-purple-50/80' :
+                      isUnexplained ? 'border-red-300 bg-red-50/80' :
+                      'border-slate-200'}
                   `}
-                  title={`${dayData.date}: ${isHoliday ? 'Holiday' : dayData.status} - ${dayData.checkIn} to ${dayData.checkOut}`}
+                  title={`${dayData.date}: ${isWeekend ? 'Off Day' : isHoliday ? 'Holiday' : isUnexplained ? 'Unexplained' : dayData.status} - ${dayData.notes || 'No notes'}`}
                 >
-                  {new Date(dayData.date).getDate()}
-                  {isHoliday && (
-                    <div className="absolute -top-1 -right-1 w-2 h-2 bg-purple-500 rounded-full"></div>
-                  )}
+                  {/* Accent gradient bar */}
+                  <div className={`
+                    absolute top-0 left-0 right-0 h-1.5 rounded-t-2xl
+                    ${isWeekend ? 'bg-gradient-to-r from-gray-400 to-gray-300' :
+                      isHoliday ? 'bg-gradient-to-r from-purple-500 to-purple-400' :
+                      isUnexplained ? 'bg-gradient-to-r from-red-500 to-red-400' :
+                      dayData.status === 'present' ? 'bg-gradient-to-r from-emerald-500 to-teal-400' :
+                      dayData.status === 'leave' ? 'bg-gradient-to-r from-orange-500 to-amber-400' :
+                      dayData.status === 'halfday' ? 'bg-gradient-to-r from-blue-500 to-cyan-400' :
+                      dayData.status === 'absent' ? 'bg-gradient-to-r from-red-500 to-rose-400' :
+                      'bg-gradient-to-r from-gray-400 to-gray-300'}
+                  `}></div>
+
+                  <div className="flex flex-col h-full justify-between">
+                    {/* Header */}
+                    <div className="flex justify-between items-start">
+                      <span className={`
+                        text-base font-semibold
+                        ${isWeekend ? 'text-gray-500' :
+                          isHoliday ? 'text-purple-600' :
+                          isUnexplained ? 'text-red-600' :
+                          dayData.status === 'present' ? 'text-emerald-600' :
+                          dayData.status === 'leave' ? 'text-orange-600' :
+                          dayData.status === 'halfday' ? 'text-blue-600' :
+                          dayData.status === 'absent' ? 'text-red-600' :
+                          'text-slate-800'}
+                      `}>
+                        {date.getDate()}
+                      </span>
+
+                      {new Date(dayData.date).toISOString().split('T')[0] === new Date().toISOString().split('T')[0] && (
+                        <span className="text-[10px] px-2 py-0.5 rounded-full bg-blue-600 text-white font-medium shadow">
+                          Today
+                        </span>
+                      )}
+                    </div>
+
+                    {/* Center Info */}
+                    <div className="text-center mt-2">
+                      {isWeekend ? (
+                        <span className="text-xs font-medium text-gray-600 bg-gray-200/60 px-2 py-1 rounded-lg">
+                          Off Day
+                        </span>
+                      ) : isHoliday ? (
+                        <span className="text-xs font-medium text-purple-600">
+                          Holiday
+                        </span>
+                      ) : isUnexplained ? (
+                        <span className="text-xs font-medium text-red-600">
+                          No Explanation
+                        </span>
+                      ) : (
+                        <>
+                          <div className="text-sm font-semibold text-slate-700 capitalize">
+                            {dayData.status}
+                          </div>
+                          <div className="text-[11px] text-slate-500">
+                            {dayData.notes ? dayData.notes.substring(0, 15) + '...' : 'No notes'}
+                          </div>
+                        </>
+                      )}
+                    </div>
+
+                    {/* Progress Bar */}
+                    {/* {!isHoliday && (
+                      <div className="mt-3">
+                        <div className="w-full h-1.5 bg-slate-200 rounded-full overflow-hidden">
+                          <div
+                            className={`h-full transition-all duration-300 ${
+                              isHoliday ? 'bg-gradient-to-r from-purple-500 to-purple-400' :
+                              isUnexplained ? 'bg-gradient-to-r from-red-500 to-red-400' :
+                              dayData.status === 'present' ? 'bg-gradient-to-r from-emerald-500 to-teal-500' :
+                              dayData.status === 'leave' ? 'bg-gradient-to-r from-orange-500 to-amber-500' :
+                              dayData.status === 'halfday' ? 'bg-gradient-to-r from-blue-500 to-cyan-500' :
+                              dayData.status === 'absent' ? 'bg-gradient-to-r from-red-500 to-rose-500' :
+                              'bg-gradient-to-r from-gray-400 to-gray-300'
+                            }`}
+                            style={{ width: `${statusPercent}%` }}
+                          />
+                        </div>
+                      </div>
+                    )} */}
+                  </div>
                 </div>
               );
             })}
           </div>
         </div>
 
-        {/* Detailed Attendance Log */}
         <div>
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-lg font-semibold text-gray-900">Detailed Attendance Log</h3>
-            <button 
-              onClick={() => setIsEditingAttendance('new')}
-              className="flex items-center px-3 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition duration-300"
-            >
-              <Plus className="h-4 w-4 mr-2" />
-              Add Manual Entry
-            </button>
           </div>
 
-          {/* Manual Entry Form */}
-          {isEditingAttendance === 'new' && (
-            <div className="bg-blue-50 rounded-xl p-4 mb-4 border border-blue-200">
-              <div className="flex items-center space-x-4">
-                <select className="px-3 py-2 border border-gray-300 rounded-lg">
-                  <option value="present">Present</option>
-                  <option value="leave">Leave</option>
-                  <option value="halfday">Half Day</option>
-                  <option value="absent">Absent</option>
-                </select>
-                <input type="date" className="px-3 py-2 border border-gray-300 rounded-lg" />
-                <input type="time" className="px-3 py-2 border border-gray-300 rounded-lg" placeholder="Check-in" />
-                <input type="time" className="px-3 py-2 border border-gray-300 rounded-lg" placeholder="Check-out" />
-                <button className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700">Save</button>
-                <button onClick={() => setIsEditingAttendance(null)} className="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700">Cancel</button>
-              </div>
-            </div>
-          )}
-
           <div className="space-y-3">
-            {empAttendance.slice(0, 10).map((record) => (
-              <div key={record.id} className="flex items-center justify-between p-4 bg-gray-50 rounded-xl border border-gray-200">
-                <div className="flex items-center space-x-4">
-                  <div className={`w-3 h-3 rounded-full ${
-                    record.status === 'present' ? 'bg-green-500' :
-                    record.status === 'leave' ? 'bg-orange-500' :
-                    record.status === 'halfday' ? 'bg-blue-500' :
-                    record.status === 'absent' ? 'bg-red-500' : 'bg-gray-400'
-                  }`}></div>
-                  <div>
-                    <div className="font-medium text-gray-900">
-                      {new Date(record.date).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}
-                    </div>
-                    <div className="text-sm text-gray-600">
-                      {record.checkIn} - {record.checkOut} • {record.hours}h
-                      {record.late !== '-' && ` • Late: ${record.late}`}
-                      {record.overtime > 0 && ` • OT: ${record.overtime}h`}
+            {empAttendance.slice(0, 10).map((record) => {
+              const isUnexplained = record.status === 'absent' && (!record.notes || record.notes === 'No notification');
+              const breaksForDay = getEmployeeBreaksForDate(employee.id, record.date);
+              const totalBreakTime = breaksForDay.reduce((total, breakItem) => total + breakItem.duration, 0);
+              
+              return (
+                <div key={record.id} className="flex items-center justify-between p-4 bg-gray-50 rounded-xl border border-gray-200">
+                  <div className="flex items-center space-x-4">
+                    <div className={`w-3 h-3 rounded-full ${
+                      isUnexplained ? 'bg-red-500' :
+                      record.status === 'present' ? 'bg-green-500' :
+                      record.status === 'leave' ? 'bg-orange-500' :
+                      record.status === 'halfday' ? 'bg-blue-500' :
+                      record.status === 'absent' ? 'bg-red-500' : 'bg-gray-400'
+                    }`}></div>
+                    <div className="flex-1">
+                      <div className="font-medium text-gray-900">
+                        {new Date(record.date).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}
+                      </div>
+                      {isEditingAttendance === record.id ? (
+                        <div className="mt-2">
+                          <textarea
+                            value={editingNotes}
+                            onChange={(e) => setEditingNotes(e.target.value)}
+                            placeholder="Enter reason for leave, half-day, or absence..."
+                            className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-[#349dff] focus:border-transparent"
+                            rows="2"
+                          />
+                          <div className="flex space-x-2 mt-2">
+                            <button
+                              onClick={() => handleSaveNotes(record.id, editingNotes)}
+                              className="px-3 py-1 bg-green-600 text-white rounded text-sm hover:bg-green-700"
+                            >
+                              Save
+                            </button>
+                            <button 
+                              onClick={() => setIsEditingAttendance(null)}
+                              className="px-3 py-1 bg-gray-600 text-white rounded text-sm hover:bg-gray-700"
+                            >
+                              Cancel
+                            </button>
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="text-sm text-gray-600">
+                          {record.notes || 'No additional notes'}
+                        </div>
+                      )}
+                      {breaksForDay.length > 0 && (
+                        <div className="flex items-center space-x-2 mt-1">
+                          <Coffee className="h-3 w-3 text-gray-400" />
+                          <span className="text-xs text-gray-500">
+                            {breaksForDay.length} breaks • {totalBreakTime} min total
+                          </span>
+                        </div>
+                      )}
                     </div>
                   </div>
-                </div>
-                <div className="flex items-center space-x-4">
-                  {isEditingAttendance === record.id ? (
-                    <div className="flex items-center space-x-2">
-                      <select 
-                        defaultValue={record.status}
-                        className="px-2 py-1 border border-gray-300 rounded text-sm"
-                      >
-                        <option value="present">Present</option>
-                        <option value="leave">Leave</option>
-                        <option value="halfday">Half Day</option>
-                        <option value="absent">Absent</option>
-                      </select>
-                      <button className="px-2 py-1 bg-green-600 text-white rounded text-sm hover:bg-green-700">Save</button>
-                      <button 
-                        onClick={() => setIsEditingAttendance(null)}
-                        className="px-2 py-1 bg-gray-600 text-white rounded text-sm hover:bg-gray-700"
-                      >
-                        Cancel
-                      </button>
-                    </div>
-                  ) : (
-                    <>
-                      <span className={`text-xs px-2 py-1 rounded-full ${
-                        record.status === 'present' ? 'bg-green-100 text-green-800' :
-                        record.status === 'leave' ? 'bg-orange-100 text-orange-800' :
-                        record.status === 'halfday' ? 'bg-blue-100 text-blue-800' :
-                        record.status === 'absent' ? 'bg-red-100 text-red-800' :
-                        'bg-gray-100 text-gray-800'
-                      }`}>
-                        {record.status}
-                      </span>
-                      {record.breaks > 0 && (
-                        <span className="text-xs text-gray-600">
-                          {record.breaks} breaks
+                  <div className="flex items-center space-x-4">
+                    {isEditingAttendance === record.id ? (
+                      <div className="flex items-center space-x-2">
+                        <select 
+                          defaultValue={record.status}
+                          className="px-2 py-1 border border-gray-300 rounded text-sm"
+                        >
+                          <option value="present">Present</option>
+                          <option value="leave">Leave</option>
+                          <option value="halfday">Half Day</option>
+                          <option value="absent">Absent</option>
+                        </select>
+                      </div>
+                    ) : (
+                      <>
+                        <span className={`text-xs px-2 py-1 rounded-full ${
+                          isUnexplained ? 'bg-red-100 text-red-800' :
+                          record.status === 'present' ? 'bg-green-100 text-green-800' :
+                          record.status === 'leave' ? 'bg-orange-100 text-orange-800' :
+                          record.status === 'halfday' ? 'bg-blue-100 text-blue-800' :
+                          record.status === 'absent' ? 'bg-red-100 text-red-800' :
+                          'bg-gray-100 text-gray-800'
+                        }`}>
+                          {isUnexplained ? 'Unexplained' : record.status}
                         </span>
-                      )}
-                      <button 
-                        onClick={() => setIsEditingAttendance(record.id)}
-                        className="p-1 text-gray-400 hover:text-blue-600 transition duration-300"
-                      >
-                        <Edit3 className="h-3 w-3" />
-                      </button>
-                    </>
-                  )}
+                        
+                        {/* View Breaks Button */}
+                        {breaksForDay.length > 0 && (
+                          <button
+                            onClick={() => handleViewBreaks(record.date)}
+                            className="flex items-center px-3 py-1 bg-blue-600 text-white rounded-lg text-sm hover:bg-blue-700 transition duration-200"
+                          >
+                            <Coffee className="h-3 w-3 mr-1" />
+                            View Breaks ({breaksForDay.length})
+                          </button>
+                        )}
+                        
+                        <button 
+                          onClick={() => handleEditNotes(record)}
+                          className="p-1 text-gray-400 hover:text-blue-600 transition duration-300"
+                          title="Edit Notes"
+                        >
+                          <Edit3 className="h-3 w-3" />
+                        </button>
+                      </>
+                    )}
+                  </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
       </div>
@@ -538,7 +2047,6 @@ const EmployeeListView = ({
         </div>
       </div>
 
-      {/* Bulk Actions Bar */}
       {selectedEmployees.length > 0 && (
         <div className="flex items-center justify-between p-4 bg-blue-50 rounded-xl border border-blue-200 mb-4">
           <div className="flex items-center space-x-4">
@@ -579,7 +2087,6 @@ const EmployeeListView = ({
                   : 'bg-gray-50 border-gray-200 hover:border-[#349dff] hover:bg-blue-50'
               }`}
             >
-              {/* Selection Checkbox */}
               <div className="flex items-center space-x-4">
                 <input
                   type="checkbox"
@@ -605,7 +2112,6 @@ const EmployeeListView = ({
               </div>
               
               <div className="flex items-center space-x-6">
-                {/* Attendance Stats */}
                 <div className="flex items-center space-x-4">
                   <div className="text-center">
                     <div className="text-lg font-bold text-green-600">{empStats.present}</div>
@@ -621,7 +2127,6 @@ const EmployeeListView = ({
                   </div>
                 </div>
 
-                {/* Leaves Info */}
                 <div className="flex items-center space-x-4">
                   <div className="text-center">
                     <div className="text-sm font-semibold text-blue-600">{employee.leavesRemaining}</div>
@@ -633,7 +2138,6 @@ const EmployeeListView = ({
                   </div>
                 </div>
 
-                {/* Action Buttons */}
                 <div className="flex items-center space-x-2">
                   <button 
                     onClick={(e) => {
@@ -673,7 +2177,7 @@ const EmployeeListView = ({
   );
 };
 
-// Overview Tab Component
+// Enhanced Overview Tab Component with Notes Editing
 const OverviewTab = ({ 
   currentDate, 
   setCurrentDate, 
@@ -686,7 +2190,6 @@ const OverviewTab = ({
   getFilteredEmployees, 
   stats, 
   holidays,
-  onManualAttendance,
   attendanceSearch,
   setAttendanceSearch,
   attendanceFilter,
@@ -694,64 +2197,20 @@ const OverviewTab = ({
   attendanceSort,
   setAttendanceSort,
   getFilteredAndSortedAttendance,
-  handleBulkStatusUpdate,
-  handleQuickAttendance,
   editingAttendance,
   setEditingAttendance,
-  employees
+  employees,
+  attendanceData,
+  onMarkAsExplained,
+  onSendReminder,
+  onUpdateAttendanceNotes
 }) => {
-  const filteredData = getFilteredAttendanceData();
-  const filteredEmployees = getFilteredEmployees();
-  const todayAttendance = filteredData.filter(item => item.date === selectedDate);
-
-  // Pie Chart Data
-  const getAttendancePieData = () => {
-    const todayData = filteredData.filter(item => item.date === selectedDate);
-    const present = todayData.filter(item => item.status === 'present').length;
-    const leave = todayData.filter(item => item.status === 'leave').length;
-    const halfday = todayData.filter(item => item.status === 'halfday').length;
-    const absent = todayData.filter(item => item.status === 'absent').length;
-    const off = todayData.filter(item => item.status === 'off').length;
-
-    return [
-      { name: 'Present', value: present, color: '#10b981' },
-      { name: 'Leave', value: leave, color: '#f59e0b' },
-      { name: 'Half Day', value: halfday, color: '#3b82f6' },
-      { name: 'Absent', value: absent, color: '#ef4444' },
-      { name: 'Off', value: off, color: '#6b7280' }
-    ];
-  };
-
-  const getMonthlyPieData = () => {
-    const monthlyData = filteredData.filter(item => 
-      new Date(item.date).getMonth() === currentDate.getMonth() &&
-      new Date(item.date).getFullYear() === currentDate.getFullYear()
-    );
-
-    const present = monthlyData.filter(item => item.status === 'present').length;
-    const leave = monthlyData.filter(item => item.status === 'leave').length;
-    const halfday = monthlyData.filter(item => item.status === 'halfday').length;
-    const absent = monthlyData.filter(item => item.status === 'absent').length;
-
-    return [
-      { name: 'Present', value: present, color: '#10b981' },
-      { name: 'Leave', value: leave, color: '#f59e0b' },
-      { name: 'Half Day', value: halfday, color: '#3b82f6' },
-      { name: 'Absent', value: absent, color: '#ef4444' }
-    ];
-  };
-
-  const pieData = getAttendancePieData();
-  const monthlyPieData = getMonthlyPieData();
-
-  // Calendar navigation
   const navigateMonth = (direction) => {
     const newDate = new Date(currentDate);
     newDate.setMonth(currentDate.getMonth() + direction);
     setCurrentDate(newDate);
   };
 
-  // Get days in month for calendar
   const getDaysInMonth = () => {
     const year = currentDate.getFullYear();
     const month = currentDate.getMonth();
@@ -762,12 +2221,10 @@ const OverviewTab = ({
     
     const days = [];
     
-    // Add empty cells for days before the first day of month
     for (let i = 0; i < startingDay; i++) {
       days.push(null);
     }
     
-    // Add days of the month
     for (let i = 1; i <= daysInMonth; i++) {
       const date = new Date(year, month, i);
       days.push(date);
@@ -776,7 +2233,6 @@ const OverviewTab = ({
     return days;
   };
 
-  // Filter options
   const timeRangeOptions = [
     { value: 'today', label: 'Today' },
     { value: 'yesterday', label: 'Yesterday' },
@@ -807,47 +2263,18 @@ const OverviewTab = ({
 
   return (
     <div className="space-y-6">
-      {/* Enhanced Filters Section */}
-      <div className="bg-white rounded-2xl p-6 border border-gray-200 shadow-sm">
-        <div className="flex items-center justify-between mb-6">
-          <h2 className="text-lg font-semibold text-gray-900">Attendance Filters</h2>
-          <div className="flex items-center space-x-3">
-            {/* View Toggle */}
-            <div className="flex bg-gray-100 rounded-lg p-1">
-              <button
-                onClick={() => handleFilterChange('viewType', 'calendar')}
-                className={`flex items-center px-3 py-2 rounded-md text-sm font-medium transition duration-300 ${
-                  filters.viewType === 'calendar' 
-                    ? 'bg-white text-gray-900 shadow-sm' 
-                    : 'text-gray-600 hover:text-gray-900'
-                }`}
-              >
-                <Grid className="h-4 w-4 mr-2" />
-                Calendar
-              </button>
-              <button
-                onClick={() => handleFilterChange('viewType', 'list')}
-                className={`flex items-center px-3 py-2 rounded-md text-sm font-medium transition duration-300 ${
-                  filters.viewType === 'list' 
-                    ? 'bg-white text-gray-900 shadow-sm' 
-                    : 'text-gray-600 hover:text-gray-900'
-                }`}
-              >
-                <List className="h-4 w-4 mr-2" />
-                List
-              </button>
-            </div>
-            
-            <button className="flex items-center px-4 py-2 bg-[#349dff] text-white rounded-xl hover:bg-[#2980db] transition duration-300">
-              <Download className="h-4 w-4 mr-2" />
-              Export
-            </button>
-          </div>
-        </div>
+      {/* Uninform Tracking */}
+      <UnexplainedAbsenceTracking
+        attendanceData={attendanceData}
+        employees={employees}
+        selectedDate={selectedDate}
+        onMarkAsExplained={onMarkAsExplained}
+        onSendReminder={onSendReminder}
+      />
 
-        {/* Filter Grid */}
+      {/* Filters Section */}
+      <div className="bg-white rounded-2xl p-6 border border-gray-200 shadow-sm">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-          {/* Time Range Filter */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">Time Range</label>
             <select
@@ -863,7 +2290,6 @@ const OverviewTab = ({
             </select>
           </div>
 
-          {/* Department Filter */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">Department</label>
             <select
@@ -879,7 +2305,6 @@ const OverviewTab = ({
             </select>
           </div>
 
-          {/* Status Filter */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">Status</label>
             <select
@@ -895,7 +2320,6 @@ const OverviewTab = ({
             </select>
           </div>
 
-          {/* Custom Date Range (shown only when custom is selected) */}
           {filters.timeRange === 'custom' && (
             <div className="lg:col-span-2 grid grid-cols-2 gap-4">
               <div>
@@ -920,11 +2344,10 @@ const OverviewTab = ({
           )}
         </div>
 
-        {/* Active Filters Summary */}
         <div className="mt-4 flex items-center space-x-4 text-sm text-gray-600">
           <span className="font-medium">Showing:</span>
-          <span>{filteredEmployees.length} employees</span>
-          <span>{filteredData.length} records</span>
+          <span>{getFilteredEmployees().length} employees</span>
+          <span>{getFilteredAttendanceData().length} records</span>
           {filters.department !== 'all' && (
             <span className="bg-blue-100 text-blue-800 px-2 py-1 rounded-full text-xs">
               {filters.department}
@@ -938,10 +2361,10 @@ const OverviewTab = ({
         </div>
       </div>
 
-      {/* Dynamic Calendar Section */}
+      {/* Calendar Section */}
       <div className="bg-white rounded-2xl p-6 border border-gray-200 shadow-sm">
         <div className="flex items-center justify-between mb-6">
-          <h2 className="text-lg font-semibold text-gray-900">
+          <h2 className="text-[30px] font-semibold text-gray-900">
             {currentDate.toLocaleString('default', { month: 'long', year: 'numeric' })} Calendar
           </h2>
           <div className="flex items-center space-x-4">
@@ -969,429 +2392,314 @@ const OverviewTab = ({
           </div>
         </div>
 
-        {/* Calendar Grid */}
-        <div className="grid grid-cols-7 gap-2 mb-4">
+        <div className="grid grid-cols-7 gap-5 mb-8">
           {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(day => (
-            <div key={day} className="text-center text-sm font-medium text-gray-500 py-2">
+            <div
+              key={day}
+              className="text-center text-s font-bold tracking-wide uppercase text-black py-2"
+            >
               {day}
             </div>
           ))}
-          
+
           {getDaysInMonth().map((date, index) => {
-            if (!date) {
-              return <div key={`empty-${index}`} className="p-3"></div>;
-            }
+            if (!date) return <div key={`empty-${index}`} className="h-[110px]"></div>;
 
             const dateStr = date.toISOString().split('T')[0];
-            const dayAttendance = filteredData.filter(att => att.date === dateStr);
+            const dayAttendance = getFilteredAttendanceData().filter(att => att.date === dateStr);
             const presentCount = dayAttendance.filter(a => a.status === 'present').length;
-            const totalCount = filteredEmployees.length;
+            const totalCount = getFilteredEmployees().length;
+
             const isSelected = selectedDate === dateStr;
             const isToday = dateStr === new Date().toISOString().split('T')[0];
-            const isHoliday = holidays.some(h => h.date === dateStr);
             const isWeekend = date.getDay() === 0 || date.getDay() === 6;
+
+            const percentage = totalCount ? Math.round((presentCount / totalCount) * 100) : 0;
 
             return (
               <div
                 key={dateStr}
                 onClick={() => setSelectedDate(dateStr)}
                 className={`
-                  relative p-3 rounded-xl border-2 cursor-pointer transition-all duration-200 hover:scale-105 min-h-[80px]
-                  ${isSelected ? 'border-[#349dff] bg-blue-50' : 'border-gray-200 bg-white'}
-                  ${isToday ? 'ring-2 ring-blue-200' : ''}
-                  ${isHoliday ? 'bg-purple-50 border-purple-200' : ''}
-                  ${isWeekend ? 'bg-gray-50' : ''}
+                  group relative p-4 rounded-2xl cursor-pointer border transition-all duration-300
+                  bg-white/80 backdrop-blur-md shadow-sm
+
+                  hover:shadow-lg hover:-translate-y-0.5
+
+                  ${isWeekend ? 'border-gray-300 bg-gray-100/80' :
+                    isSelected 
+                    ? 'border-blue-300 ring-1 ring-blue-200' 
+                    : 'border-slate-200'}
                 `}
               >
-                <div className="text-center mb-2">
-                  <div className={`text-sm font-medium ${
-                    isSelected ? 'text-[#349dff]' : 
-                    isHoliday ? 'text-purple-700' : 
-                    isWeekend ? 'text-gray-500' :
-                    'text-gray-700'
-                  }`}>
-                    {date.getDate()}
+                {/* Accent gradient bar */}
+                <div className={`
+                  absolute top-0 left-0 right-0 h-1.5 rounded-t-2xl
+                  ${isWeekend 
+                    ? 'bg-gradient-to-r from-gray-400 to-gray-300'
+                    : 'bg-gradient-to-r from-emerald-500 to-teal-400'}
+                `}></div>
+
+                <div className="flex flex-col h-full justify-between">
+                  {/* Header */}
+                  <div className="flex justify-between items-start">
+                    <span className={`
+                      text-base font-semibold
+                      ${isWeekend ? 'text-gray-500' : 'text-slate-800'}
+                    `}>
+                      {date.getDate()}
+                    </span>
+
+                    {isToday && (
+                      <span className="text-[10px] px-2 py-0.5 rounded-full bg-blue-600 text-white font-medium shadow">
+                        Today
+                      </span>
+                    )}
                   </div>
-                  {isToday && (
-                    <div className="text-xs text-blue-600 font-medium">Today</div>
+
+                  {/* Center Info */}
+                  <div className="text-center mt-2">
+                    {isWeekend ? (
+                      <span className="text-xs font-medium text-gray-600 bg-gray-200/60 px-2 py-1 rounded-lg">
+                        Off Day
+                      </span>
+                    ) : (
+                      <>
+                        <div className="text-sm font-semibold text-slate-700">
+                          {presentCount} / {totalCount}
+                        </div>
+                        <div className="text-[11px] text-slate-500">
+                          Present
+                        </div>
+                      </>
+                    )}
+                  </div>
+
+                  {/* Progress Bar */}
+                  {!isWeekend && (
+                    <div className="mt-3">
+                      <div className="w-full h-1.5 bg-slate-200 rounded-full overflow-hidden">
+                        <div
+                          className="h-full bg-gradient-to-r from-emerald-500 to-teal-500 transition-all duration-300"
+                          style={{ width: `${percentage}%` }}
+                        />
+                      </div>
+                    </div>
                   )}
                 </div>
-                
-               
+              </div>
+            );
+          })}
+        </div>
+      </div>
 
-                {/* Summary */}
-                <div className="text-xs text-center text-gray-600">
-                  {presentCount}/{totalCount}
+      {/* Attendance Details Section */}
+      <div className="bg-white rounded-2xl p-6 border border-gray-200 shadow-sm">
+        <div className="flex items-center justify-between mb-6">
+          <div className="flex items-center space-x-4">
+            <h2 className="text-lg font-semibold text-gray-900">
+              Attendance for {new Date(selectedDate).toLocaleDateString('en-US', { 
+                weekday: 'long', 
+                year: 'numeric', 
+                month: 'long', 
+                day: 'numeric' 
+              })}
+            </h2>
+          </div>
+          <div className="flex items-center space-x-4">
+            <span className="text-sm text-gray-500">
+              {getFilteredAttendanceData().filter(item => item.date === selectedDate).length} of {getFilteredEmployees().length} employees
+            </span>
+            <div className="relative">
+              <Search className="h-4 w-4 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+              <input
+                type="text"
+                placeholder="Search employees..."
+                value={attendanceSearch}
+                onChange={(e) => setAttendanceSearch(e.target.value)}
+                className="pl-10 pr-4 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-[#349dff] focus:border-transparent text-sm w-48"
+              />
+            </div>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-4 gap-4 mb-6 p-4 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl border border-blue-100">
+          <div className="text-center">
+            <div className="text-2xl font-bold text-green-600">{stats.presentToday}</div>
+            <div className="text-xs text-gray-600 font-medium">Present</div>
+          </div>
+          <div className="text-center">
+            <div className="text-2xl font-bold text-red-600">{stats.absent}</div>
+            <div className="text-xs text-gray-600 font-medium">Absent</div>
+          </div>
+          <div className="text-center">
+            <div className="text-2xl font-bold text-orange-600">{stats.onLeave}</div>
+            <div className="text-xs text-gray-600 font-medium">On Leave</div>
+          </div>
+          <div className="text-center">
+            <div className="text-2xl font-bold text-blue-600">{stats.lateToday}</div>
+            <div className="text-xs text-gray-600 font-medium">Late</div>
+          </div>
+        </div>
+
+        <div className="flex items-center space-x-4 mb-6 p-4 bg-gray-50 rounded-xl border border-gray-200">
+          <div className="flex items-center space-x-2">
+            <span className="text-sm font-medium text-gray-700">Filter by:</span>
+            <select
+              value={attendanceFilter}
+              onChange={(e) => setAttendanceFilter(e.target.value)}
+              className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-[#349dff] focus:border-transparent"
+            >
+              <option value="all">All Status</option>
+              <option value="present">Present</option>
+              <option value="absent">Absent</option>
+              <option value="leave">On Leave</option>
+              <option value="halfday">Half Day</option>
+              <option value="unexplained">Uninform</option>
+            </select>
+          </div>
+          <div className="flex items-center space-x-2">
+            <span className="text-sm font-medium text-gray-700">Sort by:</span>
+            <select
+              value={attendanceSort}
+              onChange={(e) => setAttendanceSort(e.target.value)}
+              className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-[#349dff] focus:border-transparent"
+            >
+              <option value="name">Name</option>
+              <option value="department">Department</option>
+              <option value="status">Status</option>
+            </select>
+          </div>
+        </div>
+
+        <div className="space-y-3">
+          {getFilteredAndSortedAttendance().map(employee => {
+            const todayAttendance = getFilteredAttendanceData().filter(item => item.date === selectedDate);
+            const attendance = todayAttendance.find(a => a.employeeId === employee.id);
+            const status = attendance?.status || 'not-recorded';
+            const isHoliday = holidays.some(h => h.date === selectedDate);
+            const isUnexplained = status === 'absent' && (!attendance?.notes || attendance.notes === 'No notification');
+
+            return (
+              <div 
+                key={employee.id} 
+                className="group flex items-center justify-between p-4 bg-white rounded-xl border border-gray-200 hover:border-blue-300 hover:shadow-md transition-all duration-300"
+              >
+                <div className="flex items-center space-x-4 flex-1">
+                  <div className="relative">
+                    <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center text-white font-semibold text-sm">
+                      {employee.avatar}
+                    </div>
+                    <div className={`absolute -bottom-1 -right-1 w-4 h-4 rounded-full border-2 border-white ${
+                      isUnexplained ? 'bg-red-500' :
+                      status === 'present' ? 'bg-green-500' :
+                      status === 'absent' ? 'bg-red-500' :
+                      status === 'leave' ? 'bg-orange-500' :
+                      status === 'halfday' ? 'bg-blue-500' :
+                      'bg-gray-400'
+                    }`} />
+                  </div>
+                  
+                  <div className="flex-1">
+                    <div className="flex items-center space-x-3">
+                      <h4 className="font-semibold text-gray-900">{employee.name}</h4>
+                      {isUnexplained && (
+                        <span className="px-2 py-1 bg-red-100 text-red-700 rounded-full text-xs font-medium flex items-center">
+                          <UserX className="h-3 w-3 mr-1" />
+                          Unexplained
+                        </span>
+                      )}
+                    </div>
+                    <div className="flex items-center space-x-4 text-sm text-gray-600 mt-1">
+                      <span className="flex items-center">
+                        <Building className="h-3 w-3 mr-1" />
+                        {employee.department}
+                      </span>
+                      <span className="flex items-center">
+                        <User className="h-3 w-3 mr-1" />
+                        {employee.position}
+                      </span>
+                    </div>
+                    {attendance?.notes && (
+                      <div className="mt-2 text-sm text-gray-700">
+                        <span className="font-medium">Notes:</span> {attendance.notes}
+                      </div>
+                    )}
+                  </div>
                 </div>
+                
+                <div className="flex flex-col items-end space-y-2">
+                  <span className={`px-3 py-2 rounded-full text-sm font-medium flex items-center space-x-2 ${
+                    isUnexplained ? 'bg-red-100 text-red-800 border border-red-200' :
+                    isHoliday ? 'bg-purple-100 text-purple-800 border border-purple-200' :
+                    status === 'present' ? 'bg-green-100 text-green-800 border border-green-200' :
+                    status === 'leave' ? 'bg-orange-100 text-orange-800 border border-orange-200' :
+                    status === 'halfday' ? 'bg-blue-100 text-blue-800 border border-blue-200' :
+                    status === 'absent' ? 'bg-red-100 text-red-800 border border-red-200' :
+                    'bg-gray-100 text-gray-800 border border-gray-200'
+                  }`}>
+                    {isUnexplained ? (
+                      <>
+                        <UserX className="h-3 w-3" />
+                        <span>UNEXPLAINED</span>
+                      </>
+                    ) : isHoliday ? (
+                      <>
+                        <Calendar className="h-3 w-3" />
+                        <span>HOLIDAY</span>
+                      </>
+                    ) : (
+                      <>
+                        {status === 'present' && <CheckCircle className="h-3 w-3" />}
+                        {status === 'absent' && <XCircle className="h-3 w-3" />}
+                        {status === 'leave' && <Calendar className="h-3 w-3" />}
+                        {status === 'halfday' && <Clock className="h-3 w-3" />}
+                        <span>{status.replace('-', ' ').toUpperCase()}</span>
+                      </>
+                    )}
+                  </span>
 
-                {isHoliday && (
-                  <div className="absolute -top-1 -right-1 w-3 h-3 bg-purple-500 rounded-full"></div>
-                )}
+                  {!isHoliday && attendance && (
+                    <div className="flex space-x-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                      <button
+                        onClick={() => {
+                          const newNotes = prompt('Enter notes/reason:', attendance.notes || '');
+                          if (newNotes !== null) {
+                            onUpdateAttendanceNotes(attendance.id, newNotes);
+                          }
+                        }}
+                        className="flex items-center px-3 py-1 bg-blue-500 text-white rounded-lg text-xs font-medium hover:bg-blue-600 transition duration-200"
+                        title="Add/Edit Notes"
+                      >
+                        <FileText className="h-3 w-3 mr-1" />
+                        {attendance.notes ? 'Edit Notes' : 'Add Notes'}
+                      </button>
+                    </div>
+                  )}
+                </div>
               </div>
             );
           })}
         </div>
 
-        {/* Legend */}
-        <div className="flex flex-wrap gap-4 text-xs border-t pt-4">
-          <div className="flex items-center">
-            <div className="w-3 h-3 bg-green-500 rounded mr-2"></div>
-            Present
-          </div>
-          <div className="flex items-center">
-            <div className="w-3 h-3 bg-orange-500 rounded mr-2"></div>
-            Leave
-          </div>
-          <div className="flex items-center">
-            <div className="w-3 h-3 bg-blue-500 rounded mr-2"></div>
-            Half Day
-          </div>
-          <div className="flex items-center">
-            <div className="w-3 h-3 bg-red-500 rounded mr-2"></div>
-            Absent
-          </div>
-          <div className="flex items-center">
-            <div className="w-3 h-3 bg-purple-500 rounded mr-2"></div>
-            Holiday
-          </div>
-          <div className="flex items-center">
-            <div className="w-3 h-3 bg-gray-400 rounded mr-2"></div>
-            No Record
-          </div>
-        </div>
-      </div>
-
-      {/* Selected Date Details & Charts */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Selected Date Attendance - Enhanced */}
-        <div className="lg:col-span-2 bg-white rounded-2xl p-6 border border-gray-200 shadow-sm">
-          <div className="flex items-center justify-between mb-6">
-            <div className="flex items-center space-x-4">
-              <h2 className="text-lg font-semibold text-gray-900">
-                Attendance for {new Date(selectedDate).toLocaleDateString('en-US', { 
-                  weekday: 'long', 
-                  year: 'numeric', 
-                  month: 'long', 
-                  day: 'numeric' 
-                })}
-              </h2>
-              <div className="flex items-center space-x-2">
-                <button
-                  onClick={() => handleBulkStatusUpdate('present')}
-                  className="px-3 py-1 bg-green-50 text-green-700 rounded-lg text-sm font-medium hover:bg-green-100 transition duration-200 border border-green-200"
-                >
-                  Mark All Present
-                </button>
-                <button
-                  onClick={() => handleBulkStatusUpdate('absent')}
-                  className="px-3 py-1 bg-red-50 text-red-700 rounded-lg text-sm font-medium hover:bg-red-100 transition duration-200 border border-red-200"
-                >
-                  Mark All Absent
-                </button>
-              </div>
+        {getFilteredAndSortedAttendance().length === 0 && (
+          <div className="text-center py-12">
+            <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+              <Users className="h-8 w-8 text-gray-400" />
             </div>
-            <div className="flex items-center space-x-4">
-              <span className="text-sm text-gray-500">
-                {todayAttendance.length} of {filteredEmployees.length} employees
-              </span>
-              <div className="relative">
-                <Search className="h-4 w-4 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
-                <input
-                  type="text"
-                  placeholder="Search employees..."
-                  value={attendanceSearch}
-                  onChange={(e) => setAttendanceSearch(e.target.value)}
-                  className="pl-10 pr-4 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-[#349dff] focus:border-transparent text-sm w-48"
-                />
-              </div>
-            </div>
+            <h3 className="text-lg font-medium text-gray-900 mb-2">No employees found</h3>
+            <p className="text-gray-500 mb-4">Try adjusting your filters or search terms</p>
+            <button
+              onClick={() => {
+                setAttendanceSearch('');
+                setAttendanceFilter('all');
+              }}
+              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition duration-200"
+            >
+              Clear Filters
+            </button>
           </div>
-
-          {/* Summary Stats Bar */}
-          <div className="grid grid-cols-4 gap-4 mb-6 p-4 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl border border-blue-100">
-            <div className="text-center">
-              <div className="text-2xl font-bold text-green-600">{stats.presentToday}</div>
-              <div className="text-xs text-gray-600 font-medium">Present</div>
-            </div>
-            <div className="text-center">
-              <div className="text-2xl font-bold text-red-600">{stats.absent}</div>
-              <div className="text-xs text-gray-600 font-medium">Absent</div>
-            </div>
-            <div className="text-center">
-              <div className="text-2xl font-bold text-orange-600">{stats.onLeave}</div>
-              <div className="text-xs text-gray-600 font-medium">On Leave</div>
-            </div>
-            <div className="text-center">
-              <div className="text-2xl font-bold text-blue-600">{stats.lateToday}</div>
-              <div className="text-xs text-gray-600 font-medium">Late</div>
-            </div>
-          </div>
-
-          {/* Attendance Filters */}
-          <div className="flex items-center space-x-4 mb-6 p-4 bg-gray-50 rounded-xl border border-gray-200">
-            <div className="flex items-center space-x-2">
-              <span className="text-sm font-medium text-gray-700">Filter by:</span>
-              <select
-                value={attendanceFilter}
-                onChange={(e) => setAttendanceFilter(e.target.value)}
-                className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-[#349dff] focus:border-transparent"
-              >
-                <option value="all">All Status</option>
-                <option value="present">Present</option>
-                <option value="absent">Absent</option>
-                <option value="leave">On Leave</option>
-                <option value="halfday">Half Day</option>
-                <option value="late">Late Arrivals</option>
-                <option value="not-recorded">Not Recorded</option>
-              </select>
-            </div>
-            <div className="flex items-center space-x-2">
-              <span className="text-sm font-medium text-gray-700">Sort by:</span>
-              <select
-                value={attendanceSort}
-                onChange={(e) => setAttendanceSort(e.target.value)}
-                className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-[#349dff] focus:border-transparent"
-              >
-                <option value="name">Name</option>
-                <option value="department">Department</option>
-                <option value="checkIn">Check-in Time</option>
-                <option value="status">Status</option>
-              </select>
-            </div>
-          </div>
-
-          <div className="space-y-3">
-            {getFilteredAndSortedAttendance().map(employee => {
-              const attendance = todayAttendance.find(a => a.employeeId === employee.id);
-              const status = attendance?.status || 'not-recorded';
-              const checkIn = attendance?.checkIn || '-';
-              const checkOut = attendance?.checkOut || '-';
-              const isHoliday = holidays.some(h => h.date === selectedDate);
-              const isLate = checkIn !== '-' && checkIn > '9:15 AM';
-              const hasOvertime = attendance?.overtime > 0;
-
-              return (
-                <div 
-                  key={employee.id} 
-                  className="group flex items-center justify-between p-4 bg-white rounded-xl border border-gray-200 hover:border-blue-300 hover:shadow-md transition-all duration-300"
-                >
-                  <div className="flex items-center space-x-4 flex-1">
-                    {/* Employee Avatar with Status Indicator */}
-                    <div className="relative">
-                      <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center text-white font-semibold text-sm">
-                        {employee.avatar}
-                      </div>
-                      <div className={`absolute -bottom-1 -right-1 w-4 h-4 rounded-full border-2 border-white ${
-                        status === 'present' ? 'bg-green-500' :
-                        status === 'absent' ? 'bg-red-500' :
-                        status === 'leave' ? 'bg-orange-500' :
-                        status === 'halfday' ? 'bg-blue-500' :
-                        'bg-gray-400'
-                      }`} />
-                    </div>
-                    
-                    {/* Employee Info */}
-                    <div className="flex-1">
-                      <div className="flex items-center space-x-3">
-                        <h4 className="font-semibold text-gray-900">{employee.name}</h4>
-                        {isLate && (
-                          <span className="px-2 py-1 bg-orange-100 text-orange-700 rounded-full text-xs font-medium flex items-center">
-                            <Clock className="h-3 w-3 mr-1" />
-                            Late
-                          </span>
-                        )}
-                        {hasOvertime && (
-                          <span className="px-2 py-1 bg-purple-100 text-purple-700 rounded-full text-xs font-medium flex items-center">
-                            <Zap className="h-3 w-3 mr-1" />
-                            OT: {attendance.overtime}h
-                          </span>
-                        )}
-                      </div>
-                      <div className="flex items-center space-x-4 text-sm text-gray-600 mt-1">
-                        <span className="flex items-center">
-                          <Building className="h-3 w-3 mr-1" />
-                          {employee.department}
-                        </span>
-                        <span className="flex items-center">
-                          <MapPin className="h-3 w-3 mr-1" />
-                          {employee.location}
-                        </span>
-                        <span className="flex items-center">
-                          <User className="h-3 w-3 mr-1" />
-                          {employee.position}
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-                  
-                  {/* Attendance Details */}
-                  <div className="flex items-center space-x-6">
-                    {/* Time Tracking */}
-                    <div className="text-right space-y-1">
-                      <div className="flex items-center justify-end space-x-4">
-                        <div className="text-center">
-                          <div className={`text-sm font-medium flex items-center justify-end ${
-                            isLate ? 'text-orange-600' : 'text-gray-900'
-                          }`}>
-                            {checkIn !== '-' ? (
-                              <>
-                                <Clock className="h-3 w-3 mr-1" />
-                                {checkIn}
-                              </>
-                            ) : (
-                              '-'
-                            )}
-                          </div>
-                          <div className="text-xs text-gray-500">Check-in</div>
-                        </div>
-                        <div className="text-gray-300">→</div>
-                        <div className="text-center">
-                          <div className="text-sm font-medium text-gray-900 flex items-center justify-end">
-                            {checkOut !== '-' ? (
-                              <>
-                                <Clock className="h-3 w-3 mr-1" />
-                                {checkOut}
-                              </>
-                            ) : (
-                              '-'
-                            )}
-                          </div>
-                          <div className="text-xs text-gray-500">Check-out</div>
-                        </div>
-                      </div>
-                      {attendance?.hours !== '0.0' && attendance?.hours && (
-                        <div className="text-xs text-gray-600 text-right">
-                          Total: {attendance.hours}h
-                        </div>
-                      )}
-                    </div>
-
-                    {/* Status Badge */}
-                    <div className="flex flex-col items-end space-y-2">
-                      <span className={`px-3 py-2 rounded-full text-sm font-medium flex items-center space-x-2 ${
-                        isHoliday ? 'bg-purple-100 text-purple-800 border border-purple-200' :
-                        status === 'present' ? 'bg-green-100 text-green-800 border border-green-200' :
-                        status === 'leave' ? 'bg-orange-100 text-orange-800 border border-orange-200' :
-                        status === 'halfday' ? 'bg-blue-100 text-blue-800 border border-blue-200' :
-                        status === 'absent' ? 'bg-red-100 text-red-800 border border-red-200' :
-                        'bg-gray-100 text-gray-800 border border-gray-200'
-                      }`}>
-                        {isHoliday ? (
-                          <>
-                            <Calendar className="h-3 w-3" />
-                            <span>HOLIDAY</span>
-                          </>
-                        ) : (
-                          <>
-                            {status === 'present' && <CheckCircle className="h-3 w-3" />}
-                            {status === 'absent' && <XCircle className="h-3 w-3" />}
-                            {status === 'leave' && <Calendar className="h-3 w-3" />}
-                            {status === 'halfday' && <Clock className="h-3 w-3" />}
-                            <span>{status.replace('-', ' ').toUpperCase()}</span>
-                          </>
-                        )}
-                      </span>
-
-                      {/* Quick Actions */}
-                      {!isHoliday && (
-                        <div className="flex space-x-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                          <button
-                            onClick={() => handleQuickAttendance(employee.id, 'present', '09:00 AM', '06:00 PM')}
-                            className="px-3 py-1 bg-green-500 text-white rounded-lg text-xs font-medium hover:bg-green-600 transition duration-200 flex items-center space-x-1"
-                            title="Mark Present"
-                          >
-                            <CheckCircle className="h-3 w-3" />
-                            <span>Present</span>
-                          </button>
-                          <button
-                            onClick={() => handleQuickAttendance(employee.id, 'absent')}
-                            className="px-3 py-1 bg-red-500 text-white rounded-lg text-xs font-medium hover:bg-red-600 transition duration-200 flex items-center space-x-1"
-                            title="Mark Absent"
-                          >
-                            <XCircle className="h-3 w-3" />
-                            <span>Absent</span>
-                          </button>
-                          <button
-                            onClick={() => setEditingAttendance(employee.id)}
-                            className="px-3 py-1 bg-blue-500 text-white rounded-lg text-xs font-medium hover:bg-blue-600 transition duration-200 flex items-center space-x-1"
-                            title="Edit Attendance"
-                          >
-                            <Edit3 className="h-3 w-3" />
-                            <span>Edit</span>
-                          </button>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-
-          {/* Empty State */}
-          {getFilteredAndSortedAttendance().length === 0 && (
-            <div className="text-center py-12">
-              <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Users className="h-8 w-8 text-gray-400" />
-              </div>
-              <h3 className="text-lg font-medium text-gray-900 mb-2">No employees found</h3>
-              <p className="text-gray-500 mb-4">Try adjusting your filters or search terms</p>
-              <button
-                onClick={() => {
-                  setAttendanceSearch('');
-                  setAttendanceFilter('all');
-                }}
-                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition duration-200"
-              >
-                Clear Filters
-              </button>
-            </div>
-          )}
-        </div>
-
-        {/* Charts Section */}
-        <div className="space-y-6">
-          {/* Today's Attendance Pie Chart */}
-          <div className="bg-white rounded-2xl p-6 border border-gray-200 shadow-sm">
-            <PieChartComponent 
-              data={pieData} 
-              title="Today's Attendance"
-              size={180}
-            />
-          </div>
-
-          {/* Monthly Overview Pie Chart */}
-          <div className="bg-white rounded-2xl p-6 border border-gray-200 shadow-sm">
-            <PieChartComponent 
-              data={monthlyPieData} 
-              title="Monthly Overview"
-              size={180}
-            />
-          </div>
-
-          {/* Quick Stats */}
-          <div className="bg-white rounded-2xl p-6 border border-gray-200 shadow-sm">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">Quick Stats</h3>
-            <div className="space-y-3">
-              <div className="flex justify-between items-center">
-                <span className="text-sm text-gray-600">Monthly Attendance Rate</span>
-                <span className="text-lg font-bold text-green-600">{stats.monthlyAttendanceRate}%</span>
-              </div>
-              <div className="flex justify-between items-center">
-                <span className="text-sm text-gray-600">Total Working Days</span>
-                <span className="text-lg font-bold text-blue-600">22</span>
-              </div>
-              <div className="flex justify-between items-center">
-                <span className="text-sm text-gray-600">Late Arrivals</span>
-                <span className="text-lg font-bold text-orange-600">{stats.monthlyLate}</span>
-              </div>
-              <div className="flex justify-between items-center">
-                <span className="text-sm text-gray-600">Active Employees</span>
-                <span className="text-lg font-bold text-purple-600">{stats.activeEmployees}</span>
-              </div>
-            </div>
-          </div>
-        </div>
+        )}
       </div>
     </div>
   );
@@ -1417,23 +2725,24 @@ const BreaksManagement = ({ breaks, employees, onAddBreak, onDeleteBreak }) => {
       <div className="space-y-4">
         {breaks.map(breakItem => {
           const employee = employees.find(emp => emp.id === breakItem.employeeId);
+          const breakType = BREAK_TYPES[breakItem.type] || BREAK_TYPES.short;
+          const IconComponent = breakType.icon;
+          
           return (
             <div key={breakItem.id} className="flex items-center justify-between p-4 bg-gray-50 rounded-xl border border-gray-200 hover:border-[#349dff] transition duration-300">
               <div className="flex items-center space-x-4">
-                <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center text-white font-semibold">
-                  {employee?.avatar || 'E'}
+                <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${breakType.color}`}>
+                  <IconComponent className="h-5 w-5" />
                 </div>
                 <div>
                   <h4 className="font-medium text-gray-900">{employee?.name || 'Employee'}</h4>
                   <p className="text-sm text-gray-600">
-                    {breakItem.breakStart} - {breakItem.breakEnd || 'Ongoing'} • {breakItem.duration}min
+                    {breakItem.breakStart} - {breakItem.breakEnd || 'Ongoing'} • {breakItem.duration}min • {breakType.label}
                   </p>
                 </div>
               </div>
               <div className="flex items-center space-x-2">
-                <span className={`text-xs px-2 py-1 rounded-full ${
-                  breakItem.type === 'lunch' ? 'bg-orange-100 text-orange-800' : 'bg-blue-100 text-blue-800'
-                }`}>
+                <span className={`text-xs px-2 py-1 rounded-full ${breakType.color}`}>
                   {breakItem.type}
                 </span>
                 <button 
@@ -1448,13 +2757,59 @@ const BreaksManagement = ({ breaks, employees, onAddBreak, onDeleteBreak }) => {
         })}
       </div>
 
-      {/* Add Break Modal */}
       {isAddBreakModalOpen && (
-        <AddBreakModal
-          employees={employees}
-          onClose={() => setIsAddBreakModalOpen(false)}
-          onAddBreak={onAddBreak}
-        />
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl p-6 w-full max-w-md">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-xl font-bold text-gray-900">Add Break</h2>
+              <button onClick={() => setIsAddBreakModalOpen(false)} className="p-2 hover:bg-gray-100 rounded-lg">
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Employee</label>
+                <select className="w-full px-3 py-2 border border-gray-300 rounded-lg">
+                  <option value="">Select Employee</option>
+                  {employees.map(emp => (
+                    <option key={emp.id} value={emp.id}>{emp.name}</option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Break Type</label>
+                <select className="w-full px-3 py-2 border border-gray-300 rounded-lg">
+                  {Object.entries(BREAK_TYPES).map(([key, breakType]) => (
+                    <option key={key} value={key}>{breakType.label}</option>
+                  ))}
+                </select>
+              </div>
+              <div className="flex space-x-4 pt-4">
+                <button
+                  onClick={() => setIsAddBreakModalOpen(false)}
+                  className="flex-1 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition duration-300"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={() => {
+                    onAddBreak({
+                      employeeId: employees[0]?.id,
+                      type: 'lunch',
+                      breakStart: '13:00',
+                      breakEnd: '14:00',
+                      duration: 60
+                    });
+                    setIsAddBreakModalOpen(false);
+                  }}
+                  className="flex-1 px-4 py-2 bg-[#349dff] text-white rounded-lg hover:bg-[#2980db] transition duration-300"
+                >
+                  Add Break
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );
@@ -1508,12 +2863,55 @@ const HolidaysManagement = ({ holidays, onAddHoliday, onDeleteHoliday }) => {
         ))}
       </div>
 
-      {/* Add Holiday Modal */}
       {isAddHolidayModalOpen && (
-        <AddHolidayModal
-          onClose={() => setIsAddHolidayModalOpen(false)}
-          onAddHoliday={onAddHoliday}
-        />
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl p-6 w-full max-w-md">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-xl font-bold text-gray-900">Add Holiday</h2>
+              <button onClick={() => setIsAddHolidayModalOpen(false)} className="p-2 hover:bg-gray-100 rounded-lg">
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Holiday Name</label>
+                <input
+                  type="text"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#349dff] focus:border-transparent"
+                  placeholder="Enter holiday name"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Date</label>
+                <input
+                  type="date"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#349dff] focus:border-transparent"
+                />
+              </div>
+              <div className="flex space-x-4 pt-4">
+                <button
+                  onClick={() => setIsAddHolidayModalOpen(false)}
+                  className="flex-1 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition duration-300"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={() => {
+                    onAddHoliday({
+                      name: 'New Holiday',
+                      date: new Date().toISOString().split('T')[0],
+                      type: 'public'
+                    });
+                    setIsAddHolidayModalOpen(false);
+                  }}
+                  className="flex-1 px-4 py-2 bg-[#349dff] text-white rounded-lg hover:bg-[#2980db] transition duration-300"
+                >
+                  Add Holiday
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );
@@ -1559,7 +2957,6 @@ const LeavesSummary = ({ employees, employeeLeaves, onApproveLeave }) => {
                 </div>
               </div>
 
-              {/* Leave Type Breakdown */}
               <div className="flex items-center space-x-4">
                 {leaves && (
                   <>
@@ -1579,7 +2976,6 @@ const LeavesSummary = ({ employees, employeeLeaves, onApproveLeave }) => {
                 )}
               </div>
 
-              {/* Approve Button */}
               <button
                 onClick={() => handleApproveLeave(employee.id)}
                 className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition duration-300"
@@ -1683,16 +3079,6 @@ const AddEmployeeModal = ({ isOpen, onClose, onAddEmployee, editingEmployee }) =
             />
           </div>
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Location</label>
-            <input
-              type="text"
-              value={formData.location}
-              onChange={(e) => setFormData(prev => ({ ...prev, location: e.target.value }))}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#349dff] focus:border-transparent"
-            />
-          </div>
-
           <div className="flex space-x-4 pt-4">
             <button
               type="button"
@@ -1706,193 +3092,6 @@ const AddEmployeeModal = ({ isOpen, onClose, onAddEmployee, editingEmployee }) =
               className="flex-1 px-4 py-2 bg-[#349dff] text-white rounded-lg hover:bg-[#2980db] transition duration-300"
             >
               {editingEmployee ? 'Update' : 'Add'} Employee
-            </button>
-          </div>
-        </form>
-      </div>
-    </div>
-  );
-};
-
-const AddHolidayModal = ({ onClose, onAddHoliday }) => {
-  const [formData, setFormData] = useState({
-    name: '',
-    date: '',
-    type: 'public'
-  });
-
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    onAddHoliday(formData);
-    onClose();
-  };
-
-  return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-2xl p-6 w-full max-w-md">
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="text-xl font-bold text-gray-900">Add Holiday</h2>
-          <button onClick={onClose} className="p-2 hover:bg-gray-100 rounded-lg">
-            <X className="h-5 w-5" />
-          </button>
-        </div>
-        
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Holiday Name</label>
-            <input
-              type="text"
-              value={formData.name}
-              onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#349dff] focus:border-transparent"
-              required
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Date</label>
-            <input
-              type="date"
-              value={formData.date}
-              onChange={(e) => setFormData(prev => ({ ...prev, date: e.target.value }))}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#349dff] focus:border-transparent"
-              required
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Type</label>
-            <select
-              value={formData.type}
-              onChange={(e) => setFormData(prev => ({ ...prev, type: e.target.value }))}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#349dff] focus:border-transparent"
-            >
-              <option value="public">Public Holiday</option>
-              <option value="company">Company Holiday</option>
-            </select>
-          </div>
-
-          <div className="flex space-x-4 pt-4">
-            <button
-              type="button"
-              onClick={onClose}
-              className="flex-1 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition duration-300"
-            >
-              Cancel
-            </button>
-            <button
-              type="submit"
-              className="flex-1 px-4 py-2 bg-[#349dff] text-white rounded-lg hover:bg-[#2980db] transition duration-300"
-            >
-              Add Holiday
-            </button>
-          </div>
-        </form>
-      </div>
-    </div>
-  );
-};
-
-const AddBreakModal = ({ employees, onClose, onAddBreak }) => {
-  const [formData, setFormData] = useState({
-    employeeId: '',
-    date: new Date().toISOString().split('T')[0],
-    breakStart: '',
-    breakEnd: '',
-    type: 'short'
-  });
-
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    onAddBreak(formData);
-    onClose();
-  };
-
-  return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-2xl p-6 w-full max-w-md">
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="text-xl font-bold text-gray-900">Add Break</h2>
-          <button onClick={onClose} className="p-2 hover:bg-gray-100 rounded-lg">
-            <X className="h-5 w-5" />
-          </button>
-        </div>
-        
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Employee</label>
-            <select
-              value={formData.employeeId}
-              onChange={(e) => setFormData(prev => ({ ...prev, employeeId: e.target.value }))}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#349dff] focus:border-transparent"
-              required
-            >
-              <option value="">Select Employee</option>
-              {employees.map(emp => (
-                <option key={emp.id} value={emp.id}>{emp.name}</option>
-              ))}
-            </select>
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Date</label>
-            <input
-              type="date"
-              value={formData.date}
-              onChange={(e) => setFormData(prev => ({ ...prev, date: e.target.value }))}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#349dff] focus:border-transparent"
-              required
-            />
-          </div>
-
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Start Time</label>
-              <input
-                type="time"
-                value={formData.breakStart}
-                onChange={(e) => setFormData(prev => ({ ...prev, breakStart: e.target.value }))}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#349dff] focus:border-transparent"
-                required
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">End Time</label>
-              <input
-                type="time"
-                value={formData.breakEnd}
-                onChange={(e) => setFormData(prev => ({ ...prev, breakEnd: e.target.value }))}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#349dff] focus:border-transparent"
-                required
-              />
-            </div>
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Type</label>
-            <select
-              value={formData.type}
-              onChange={(e) => setFormData(prev => ({ ...prev, type: e.target.value }))}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#349dff] focus:border-transparent"
-            >
-              <option value="short">Short Break</option>
-              <option value="lunch">Lunch Break</option>
-            </select>
-          </div>
-
-          <div className="flex space-x-4 pt-4">
-            <button
-              type="button"
-              onClick={onClose}
-              className="flex-1 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition duration-300"
-            >
-              Cancel
-            </button>
-            <button
-              type="submit"
-              className="flex-1 px-4 py-2 bg-[#349dff] text-white rounded-lg hover:bg-[#2980db] transition duration-300"
-            >
-              Add Break
             </button>
           </div>
         </form>
@@ -1939,7 +3138,6 @@ export function HrAttendancePage() {
   const [employeeView, setEmployeeView] = useState('list');
   const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
   
-  // Enhanced state variables
   const [editingEmployee, setEditingEmployee] = useState(null);
   const [isAddEmployeeModalOpen, setIsAddEmployeeModalOpen] = useState(false);
   const [isAddHolidayModalOpen, setIsAddHolidayModalOpen] = useState(false);
@@ -1949,13 +3147,15 @@ export function HrAttendancePage() {
   const [bulkAction, setBulkAction] = useState('');
   const [notifications, setNotifications] = useState([]);
 
-  // New state variables for enhanced attendance functionality
   const [attendanceSearch, setAttendanceSearch] = useState('');
   const [attendanceFilter, setAttendanceFilter] = useState('all');
   const [attendanceSort, setAttendanceSort] = useState('name');
   const [editingAttendance, setEditingAttendance] = useState(null);
 
-  // Filter states
+  // Add monthly filter state
+  const [monthlyFilter, setMonthlyFilter] = useState('stacked');
+  const [timeRange, setTimeRange] = useState('weekly');
+
   const [filters, setFilters] = useState({
     department: 'all',
     status: 'all',
@@ -1967,14 +3167,68 @@ export function HrAttendancePage() {
     }
   });
 
-  // Enhanced filtering and sorting function
+  // Enhanced stats calculation to include Uninform
+  const calculateStats = () => {
+    const filteredData = getFilteredAttendanceData();
+    const filteredEmployees = getFilteredEmployees();
+    
+    const today = new Date().toISOString().split('T')[0];
+    const todayData = filteredData.filter(item => item.date === today);
+    
+    const presentCount = todayData.filter(item => item.status === 'present').length;
+    const leaveCount = todayData.filter(item => item.status === 'leave').length;
+    const halfdayCount = todayData.filter(item => item.status === 'halfday').length;
+    const absentCount = todayData.filter(item => item.status === 'absent').length;
+    const lateCount = todayData.filter(item => item.late !== '-').length;
+    
+    // Calculate Uninform
+    const unexplainedAbsences = todayData.filter(item => 
+      item.status === 'absent' && (!item.notes || item.notes === 'No notification' || item.notes.includes('No explanation'))
+    ).length;
+
+    const totalBreaks = breaks.length;
+    const totalHolidays = holidays.length;
+    const totalLeavesTaken = employeeLeaves.reduce((sum, leave) => sum + leave.totalTaken, 0);
+
+    const monthlyData = filteredData.filter(item => 
+      new Date(item.date).getMonth() === currentDate.getMonth() &&
+      new Date(item.date).getFullYear() === currentDate.getFullYear()
+    );
+
+    const monthlyPresent = monthlyData.filter(item => item.status === 'present').length;
+    const monthlyLeave = monthlyData.filter(item => item.status === 'leave').length;
+    const monthlyHalfday = monthlyData.filter(item => item.status === 'halfday').length;
+    const monthlyAbsent = monthlyData.filter(item => item.status === 'absent').length;
+    const monthlyLate = monthlyData.filter(item => item.late !== '-').length;
+
+    return {
+      presentToday: presentCount,
+      onLeave: leaveCount,
+      halfDays: halfdayCount,
+      absent: absentCount,
+      lateToday: lateCount,
+      unexplainedAbsences: unexplainedAbsences,
+      totalEmployees: filteredEmployees.length,
+      activeEmployees: filteredEmployees.filter(emp => emp.status === 'active').length,
+      totalBreaks: totalBreaks,
+      totalHolidays: totalHolidays,
+      totalLeavesTaken: totalLeavesTaken,
+      monthlyPresent,
+      monthlyLeave,
+      monthlyHalfday,
+      monthlyAbsent,
+      monthlyLate,
+      monthlyAttendanceRate: filteredEmployees.length > 0 ? 
+        ((monthlyPresent / monthlyData.length) * 100).toFixed(1) : '0.0'
+    };
+  };
+
   const getFilteredAndSortedAttendance = () => {
     const filteredEmployees = getFilteredEmployees();
     const todayAttendanceData = getFilteredAttendanceData().filter(item => item.date === selectedDate);
     
     let filtered = filteredEmployees;
     
-    // Apply search filter
     if (attendanceSearch) {
       filtered = filtered.filter(emp => 
         emp.name.toLowerCase().includes(attendanceSearch.toLowerCase()) ||
@@ -1982,7 +3236,6 @@ export function HrAttendancePage() {
       );
     }
     
-    // Apply status filter
     if (attendanceFilter !== 'all') {
       filtered = filtered.filter(emp => {
         const attendance = todayAttendanceData.find(a => a.employeeId === emp.id);
@@ -1994,11 +3247,13 @@ export function HrAttendancePage() {
         if (attendanceFilter === 'not-recorded') {
           return !attendance;
         }
+        if (attendanceFilter === 'unexplained') {
+          return status === 'absent' && (!attendance?.notes || attendance.notes === 'No notification');
+        }
         return status === attendanceFilter;
       });
     }
     
-    // Apply sorting
     filtered.sort((a, b) => {
       const attendanceA = todayAttendanceData.find(att => att.employeeId === a.id);
       const attendanceB = todayAttendanceData.find(att => att.employeeId === b.id);
@@ -2020,50 +3275,115 @@ export function HrAttendancePage() {
     return filtered;
   };
 
-  // Bulk status update function
-  const handleBulkStatusUpdate = (status) => {
-    const employeesToUpdate = getFilteredAndSortedAttendance();
-    const todayAttendanceData = getFilteredAttendanceData().filter(item => item.date === selectedDate);
+  // Add functions for handling Uninform
+  const handleMarkAsExplained = (employeeId, date, explanation) => {
+    setAttendanceData(prev => prev.map(att => 
+      att.employeeId === employeeId && att.date === date 
+        ? { ...att, notes: explanation }
+        : att
+    ));
+    addNotification('Absence marked as explained', 'success');
+  };
+
+  const handleSendReminder = (employeeId, employeeName) => {
+    // In a real app, this would send an email or notification
+    console.log(`Sending reminder to ${employeeName} (ID: ${employeeId})`);
+    addNotification(`Reminder sent to ${employeeName}`, 'info');
+  };
+
+  // Updated handleManualAttendance function (simplified without check-in/check-out)
+  const handleManualAttendance = (employeeId, date, status, notes = '') => {
+    const existingRecord = attendanceData.find(att => 
+      att.employeeId === employeeId && att.date === date
+    );
+
+    if (existingRecord) {
+      setAttendanceData(prev => prev.map(att => 
+        att.id === existingRecord.id ? {
+          ...att,
+          status,
+          notes: notes || att.notes
+        } : att
+      ));
+    } else {
+      const newAttendance = {
+        id: `${employeeId}-${date}`,
+        employeeId,
+        date,
+        status,
+        checkIn: '-',
+        checkOut: '-',
+        hours: '0.0',
+        breaks: 0,
+        breakDuration: 0,
+        late: '-',
+        overtime: '0.0',
+        notes: notes
+      };
+      setAttendanceData(prev => [...prev, newAttendance]);
+    }
+    addNotification('Attendance updated successfully', 'success');
+  };
+
+  // Add function to handle notes updates
+  const handleUpdateAttendanceNotes = (attendanceId, notes) => {
+    setAttendanceData(prev => prev.map(att => 
+      att.id === attendanceId ? { ...att, notes } : att
+    ));
+    addNotification('Notes updated successfully', 'success');
+  };
+
+  // Enhanced sample breaks generation
+  const generateSampleBreaks = () => {
+    const breaks = [];
+    const breakTypes = ['Cigarette', 'Pray', 'lunch', 'dinner', 'washroom', 'short'];
     
-    employeesToUpdate.forEach(employee => {
-      const existingAttendance = todayAttendanceData.find(a => a.employeeId === employee.id);
-      
-      if (!existingAttendance || existingAttendance.status !== status) {
-        const checkIn = status === 'present' ? '09:00 AM' : '-';
-        const checkOut = status === 'present' ? '06:00 PM' : '-';
+    employees.forEach(employee => {
+      for (let i = 1; i <= 30; i++) {
+        const date = new Date(currentDate.getFullYear(), currentDate.getMonth(), i);
+        const dateStr = date.toISOString().split('T')[0];
+        const dayOfWeek = date.getDay();
         
-        handleManualAttendance(employee.id, selectedDate, status, checkIn, checkOut);
+        // Skip weekends for more realistic data
+        if (dayOfWeek === 0 || dayOfWeek === 6) continue;
+        
+        const breakCount = Math.floor(Math.random() * 3) + 1; // 1-3 breaks per day
+        
+        for (let j = 0; j < breakCount; j++) {
+          const breakType = breakTypes[Math.floor(Math.random() * breakTypes.length)];
+          const breakStartHour = 9 + Math.floor(Math.random() * 8); // Between 9 AM and 5 PM
+          const breakStartMinute = [0, 15, 30, 45][Math.floor(Math.random() * 4)];
+          const breakDuration = [5, 10, 15, 30, 45, 60][Math.floor(Math.random() * 6)];
+          
+          const breakStart = `${breakStartHour.toString().padStart(2, '0')}:${breakStartMinute.toString().padStart(2, '0')}`;
+          const breakEndHour = breakStartHour + Math.floor((breakStartMinute + breakDuration) / 60);
+          const breakEndMinute = (breakStartMinute + breakDuration) % 60;
+          const breakEnd = `${breakEndHour.toString().padStart(2, '0')}:${breakEndMinute.toString().padStart(2, '0')}`;
+          
+          breaks.push({
+            id: `${employee.id}-${dateStr}-break-${j}`,
+            employeeId: employee.id,
+            date: dateStr,
+            type: breakType,
+            breakStart,
+            breakEnd,
+            duration: breakDuration,
+            notes: BREAK_TYPES[breakType].label
+          });
+        }
       }
     });
     
-    addNotification(`Marked ${employeesToUpdate.length} employees as ${status}`, 'success');
+    return breaks;
   };
 
-  // Enhanced quick attendance function
-  const handleQuickAttendance = (employeeId, status, checkIn = '-', checkOut = '-') => {
-    handleManualAttendance(employeeId, selectedDate, status, checkIn, checkOut);
-    
-    // Show appropriate notification
-    const employee = employees.find(emp => emp.id === employeeId);
-    const statusMessages = {
-      present: `Marked ${employee?.name} as present`,
-      absent: `Marked ${employee?.name} as absent`,
-      leave: `Marked ${employee?.name} as on leave`,
-      halfday: `Marked ${employee?.name} as half day`
-    };
-    
-    addNotification(statusMessages[status] || 'Attendance updated', 'success');
-  };
-
-  // Initialize sample data
   useEffect(() => {
-    // Sample employees data
     const sampleEmployees = [
       { 
         id: 1, 
         name: 'Muhammad Hamza', 
         department: 'Production', 
-        position: 'Senior Developer', 
+        position: 'Developer', 
         email: 'hamza@company.com', 
         status: 'active', 
         joinDate: '2023-01-15', 
@@ -2071,8 +3391,7 @@ export function HrAttendancePage() {
         totalLeaves: 20,
         leavesTaken: 8,
         leavesRemaining: 12,
-        phone: '+1-555-0101',
-        location: 'New York'
+        phone: '+1-555-0101'
       },
       { 
         id: 2, 
@@ -2086,8 +3405,7 @@ export function HrAttendancePage() {
         totalLeaves: 20,
         leavesTaken: 12,
         leavesRemaining: 8,
-        phone: '+1-555-0102',
-        location: 'San Francisco'
+        phone: '+1-555-0102'
       },
       { 
         id: 3, 
@@ -2101,8 +3419,7 @@ export function HrAttendancePage() {
         totalLeaves: 20,
         leavesTaken: 5,
         leavesRemaining: 15,
-        phone: '+1-555-0103',
-        location: 'Chicago'
+        phone: '+1-555-0103'
       },
       { 
         id: 4, 
@@ -2116,8 +3433,7 @@ export function HrAttendancePage() {
         totalLeaves: 20,
         leavesTaken: 15,
         leavesRemaining: 5,
-        phone: '+1-555-0104',
-        location: 'Boston'
+        phone: '+1-555-0104'
       },
       { 
         id: 5, 
@@ -2131,8 +3447,7 @@ export function HrAttendancePage() {
         totalLeaves: 20,
         leavesTaken: 3,
         leavesRemaining: 17,
-        phone: '+1-555-0105',
-        location: 'Austin'
+        phone: '+1-555-0105'
       },
       { 
         id: 6, 
@@ -2146,12 +3461,10 @@ export function HrAttendancePage() {
         totalLeaves: 20,
         leavesTaken: 10,
         leavesRemaining: 10,
-        phone: '+1-555-0106',
-        location: 'Seattle'
+        phone: '+1-555-0106'
       }
     ];
 
-    // Sample attendance rules
     const sampleRules = {
       workHours: { start: '09:00', end: '18:00' },
       breakDuration: 60,
@@ -2161,14 +3474,6 @@ export function HrAttendancePage() {
       autoDeduction: true
     };
 
-    // Sample breaks data
-    const sampleBreaks = [
-      { id: 1, employeeId: 1, date: '2025-01-15', breakStart: '11:00', breakEnd: '11:15', duration: 15, type: 'short' },
-      { id: 2, employeeId: 1, date: '2025-01-15', breakStart: '13:00', breakEnd: '14:00', duration: 60, type: 'lunch' },
-      { id: 3, employeeId: 2, date: '2025-01-15', breakStart: '11:30', breakEnd: '11:45', duration: 15, type: 'short' }
-    ];
-
-    // Sample holidays
     const sampleHolidays = [
       { id: 1, name: 'Annual Dinner', date: '2025-01-01', type: 'public' },
       { id: 2, name: 'Company Holiday', date: '2025-01-2', type: 'company' },
@@ -2176,7 +3481,6 @@ export function HrAttendancePage() {
       { id: 4, name: 'Qauid Brithday Party', date: '2025-12-25', type: 'public' }
     ];
 
-    // Sample employee leaves summary
     const sampleEmployeeLeaves = [
       { employeeId: 1, casualLeaves: 3, sickLeaves: 2, annualLeaves: 3, totalTaken: 8 },
       { employeeId: 2, casualLeaves: 5, sickLeaves: 4, annualLeaves: 3, totalTaken: 12 },
@@ -2186,7 +3490,6 @@ export function HrAttendancePage() {
       { employeeId: 6, casualLeaves: 4, sickLeaves: 3, annualLeaves: 3, totalTaken: 10 }
     ];
 
-    // Enhanced sample attendance data with more realistic patterns
     const sampleAttendance = [];
     const today = new Date();
     
@@ -2197,30 +3500,14 @@ export function HrAttendancePage() {
       const isHoliday = sampleHolidays.some(h => h.date === date.toISOString().split('T')[0]);
       
       sampleEmployees.forEach(employee => {
-        let status, checkIn, checkOut, hours, late, overtime;
+        let status, notes;
         
         if (isHoliday) {
           status = 'off';
-          checkIn = '-';
-          checkOut = '-';
-          hours = '0.0';
-          late = '-';
-          overtime = '0.0';
+          notes = 'Holiday';
         } else if (isWeekend) {
           status = Math.random() > 0.8 ? 'present' : 'off';
-          if (status === 'present') {
-            checkIn = '10:00 AM';
-            checkOut = '4:00 PM';
-            hours = '6.0';
-            late = Math.random() > 0.7 ? '60m' : '-';
-            overtime = '0.0';
-          } else {
-            checkIn = '-';
-            checkOut = '-';
-            hours = '0.0';
-            late = '-';
-            overtime = '0.0';
-          }
+          notes = status === 'present' ? 'Weekend work' : 'Weekend';
         } else {
           const statuses = ['present', 'present', 'present', 'leave', 'halfday', 'absent'];
           const weights = [0.65, 0.1, 0.1, 0.05, 0.05, 0.05];
@@ -2239,31 +3526,14 @@ export function HrAttendancePage() {
           status = statuses[statusIndex];
           
           if (status === 'present') {
-            // Random check-in between 8:45 AM and 9:30 AM
-            const checkInHour = 8 + Math.floor(Math.random() * 2);
-            const checkInMinute = 45 + Math.floor(Math.random() * 45);
-            checkIn = `${checkInHour}:${checkInMinute.toString().padStart(2, '0')} AM`;
-            
-            // Check-out between 5:30 PM and 7:00 PM
-            const checkOutHour = 17 + Math.floor(Math.random() * 2);
-            const checkOutMinute = 30 + Math.floor(Math.random() * 30);
-            checkOut = `${checkOutHour - 12}:${checkOutMinute.toString().padStart(2, '0')} PM`;
-            
-            hours = (8.5 + Math.random() * 1.5).toFixed(1);
-            late = checkInHour > 9 || (checkInHour === 9 && checkInMinute > 15) ? `${(checkInMinute - 15)}m` : '-';
-            overtime = Math.random() > 0.6 ? (Math.random() * 3).toFixed(1) : '0.0';
+            notes = '';
           } else if (status === 'halfday') {
-            checkIn = '9:00 PM';
-            checkOut = '1:00 PM';
-            hours = '4.0';
-            late = '-';
-            overtime = '0.0';
+            notes = 'Medical appointment';
+          } else if (status === 'leave') {
+            notes = 'Annual leave';
           } else {
-            checkIn = '-';
-            checkOut = '-';
-            hours = '0.0';
-            late = '-';
-            overtime = '0.0';
+            // Randomly set some absences as unexplained
+            notes = Math.random() > 0.7 ? 'No explanation provided' : 'Sick leave';
           }
         }
         
@@ -2273,29 +3543,29 @@ export function HrAttendancePage() {
           date: date.toISOString().split('T')[0],
           day: i,
           status: status,
-          checkIn: checkIn,
-          checkOut: checkOut,
-          hours: hours,
-          breaks: Math.floor(Math.random() * 3),
-          breakDuration: Math.floor(Math.random() * 90),
-          late: late,
-          overtime: overtime,
-          notes: status === 'absent' && Math.random() > 0.5 ? 'No notification' : ''
+          checkIn: '-',
+          checkOut: '-',
+          hours: '0.0',
+          breaks: 0,
+          breakDuration: 0,
+          late: '-',
+          overtime: '0.0',
+          notes: notes
         });
       });
     }
 
     setEmployees(sampleEmployees);
     setAttendanceRules(sampleRules);
-    setBreaks(sampleBreaks);
     setHolidays(sampleHolidays);
     setEmployeeLeaves(sampleEmployeeLeaves);
     setAttendanceData(sampleAttendance);
+    
+    // Generate breaks after employees are set
+    const sampleBreaks = generateSampleBreaks();
+    setBreaks(sampleBreaks);
   }, [currentDate]);
 
-  // Enhanced Functionalities
-
-  // Employee Management Functions
   const handleAddEmployee = (employeeData) => {
     const newEmployee = {
       id: Math.max(...employees.map(e => e.id)) + 1,
@@ -2329,7 +3599,6 @@ export function HrAttendancePage() {
     }
   };
 
-  // Holiday Management Functions
   const handleAddHoliday = (holidayData) => {
     const newHoliday = {
       id: Math.max(...holidays.map(h => h.id)) + 1,
@@ -2347,12 +3616,11 @@ export function HrAttendancePage() {
     }
   };
 
-  // Break Management Functions
   const handleAddBreak = (breakData) => {
     const newBreak = {
       id: Math.max(...breaks.map(b => b.id)) + 1,
       ...breakData,
-      duration: calculateBreakDuration(breakData.breakStart, breakData.breakEnd)
+      duration: 60
     };
     setBreaks(prev => [...prev, newBreak]);
     setIsAddBreakModalOpen(false);
@@ -2366,54 +3634,12 @@ export function HrAttendancePage() {
     }
   };
 
-  // Attendance Management Functions
-  const handleManualAttendance = (employeeId, date, status, checkIn, checkOut) => {
-    const existingRecord = attendanceData.find(att => 
-      att.employeeId === employeeId && att.date === date
-    );
-
-    if (existingRecord) {
-      // Update existing record
-      setAttendanceData(prev => prev.map(att => 
-        att.id === existingRecord.id ? {
-          ...att,
-          status,
-          checkIn: checkIn || att.checkIn,
-          checkOut: checkOut || att.checkOut,
-          hours: calculateHours(checkIn, checkOut),
-          late: calculateLate(checkIn),
-          overtime: calculateOvertime(checkOut)
-        } : att
-      ));
-    } else {
-      // Create new record
-      const newAttendance = {
-        id: `${employeeId}-${date}`,
-        employeeId,
-        date,
-        status,
-        checkIn: checkIn || '-',
-        checkOut: checkOut || '-',
-        hours: calculateHours(checkIn, checkOut),
-        breaks: 0,
-        breakDuration: 0,
-        late: calculateLate(checkIn),
-        overtime: calculateOvertime(checkOut),
-        notes: 'Manual entry'
-      };
-      setAttendanceData(prev => [...prev, newAttendance]);
-    }
-    addNotification('Attendance updated successfully', 'success');
-  };
-
-  // Bulk Operations
   const handleBulkAction = () => {
     if (!bulkAction || selectedEmployees.length === 0) return;
 
     switch (bulkAction) {
       case 'approve-leave':
         selectedEmployees.forEach(empId => {
-          // Update leave status
           setEmployeeLeaves(prev => prev.map(leave => 
             leave.employeeId === empId 
               ? { ...leave, totalTaken: leave.totalTaken + 1 }
@@ -2443,18 +3669,15 @@ export function HrAttendancePage() {
     const dataToExport = attendanceData.filter(att => 
       employeeIds.includes(att.employeeId)
     );
-    // In a real app, this would generate and download a file
     console.log('Exporting data:', dataToExport);
     addNotification(`Data exported for ${employeeIds.length} employees`, 'success');
   };
 
   const handleBulkReminder = (employeeIds) => {
-    // In a real app, this would send actual reminders
     console.log('Sending reminders to:', employeeIds);
     addNotification(`Reminders sent to ${employeeIds.length} employees`, 'success');
   };
 
-  // Leave Management
   const handleApproveLeave = (employeeId) => {
     setEmployeeLeaves(prev => prev.map(leave => 
       leave.employeeId === employeeId 
@@ -2464,7 +3687,6 @@ export function HrAttendancePage() {
     addNotification('Leave approved successfully', 'success');
   };
 
-  // Search and Filter Functions
   const handleSearch = (term) => {
     setSearchTerm(term);
   };
@@ -2483,33 +3705,6 @@ export function HrAttendancePage() {
     return filtered;
   };
 
-  // Utility Functions
-  const calculateBreakDuration = (start, end) => {
-    if (!start || !end) return 0;
-    const startTime = new Date(`2000-01-01T${start}`);
-    const endTime = new Date(`2000-01-01T${end}`);
-    return Math.round((endTime - startTime) / (1000 * 60));
-  };
-
-  const calculateHours = (checkIn, checkOut) => {
-    if (!checkIn || !checkOut || checkIn === '-' || checkOut === '-') return '0.0';
-    // Simple calculation - in real app, use proper time parsing
-    return '8.0';
-  };
-
-  const calculateLate = (checkIn) => {
-    if (!checkIn || checkIn === '-') return '-';
-    // Simple late calculation
-    return checkIn > '09:15' ? '15m' : '-';
-  };
-
-  const calculateOvertime = (checkOut) => {
-    if (!checkOut || checkOut === '-') return '0.0';
-    // Simple overtime calculation
-    return checkOut > '18:00' ? '1.5' : '0.0';
-  };
-
-  // Notification System
   const addNotification = (message, type = 'info') => {
     const newNotification = {
       id: Date.now(),
@@ -2520,13 +3715,11 @@ export function HrAttendancePage() {
     
     setNotifications(prev => [newNotification, ...prev.slice(0, 4)]);
     
-    // Auto remove after 5 seconds
     setTimeout(() => {
       setNotifications(prev => prev.filter(n => n.id !== newNotification.id));
     }, 5000);
   };
 
-  // Employee Selection for Bulk Operations
   const toggleEmployeeSelection = (employeeId) => {
     setSelectedEmployees(prev => 
       prev.includes(employeeId)
@@ -2544,7 +3737,6 @@ export function HrAttendancePage() {
     }
   };
 
-  // Filter handlers
   const handleFilterChange = (filterType, value) => {
     setFilters(prev => ({
       ...prev,
@@ -2562,11 +3754,9 @@ export function HrAttendancePage() {
     }));
   };
 
-  // Get filtered data based on current filters
   const getFilteredAttendanceData = () => {
     let filteredData = [...attendanceData];
     
-    // Filter by department
     if (filters.department !== 'all') {
       const departmentEmployees = employees
         .filter(emp => emp.department === filters.department)
@@ -2576,7 +3766,6 @@ export function HrAttendancePage() {
       );
     }
     
-    // Filter by status
     if (filters.status !== 'all') {
       if (filters.status === 'late') {
         filteredData = filteredData.filter(att => att.late !== '-');
@@ -2585,7 +3774,6 @@ export function HrAttendancePage() {
       }
     }
     
-    // Filter by time range
     const now = new Date();
     switch (filters.timeRange) {
       case 'today':
@@ -2640,68 +3828,26 @@ export function HrAttendancePage() {
     return filteredData;
   };
 
-  // Get filtered employees based on department
   const getFilteredEmployees = () => {
     if (filters.department === 'all') return employees;
     return employees.filter(emp => emp.department === filters.department);
   };
 
-  // Calculate statistics based on filtered data
-  const calculateStats = () => {
-    const filteredData = getFilteredAttendanceData();
-    const filteredEmployees = getFilteredEmployees();
-    
-    const today = new Date().toISOString().split('T')[0];
-    const todayData = filteredData.filter(item => item.date === today);
-    
-    const presentCount = todayData.filter(item => item.status === 'present').length;
-    const leaveCount = todayData.filter(item => item.status === 'leave').length;
-    const halfdayCount = todayData.filter(item => item.status === 'halfday').length;
-    const absentCount = todayData.filter(item => item.status === 'absent').length;
-    const lateCount = todayData.filter(item => item.late !== '-').length;
-    
-    const totalBreaks = breaks.length;
-    const totalHolidays = holidays.length;
-    const totalLeavesTaken = employeeLeaves.reduce((sum, leave) => sum + leave.totalTaken, 0);
-
-    // Monthly stats from filtered data
-    const monthlyData = filteredData.filter(item => 
-      new Date(item.date).getMonth() === currentDate.getMonth() &&
-      new Date(item.date).getFullYear() === currentDate.getFullYear()
-    );
-
-    const monthlyPresent = monthlyData.filter(item => item.status === 'present').length;
-    const monthlyLeave = monthlyData.filter(item => item.status === 'leave').length;
-    const monthlyHalfday = monthlyData.filter(item => item.status === 'halfday').length;
-    const monthlyAbsent = monthlyData.filter(item => item.status === 'absent').length;
-    const monthlyLate = monthlyData.filter(item => item.late !== '-').length;
-
-    return {
-      presentToday: presentCount,
-      onLeave: leaveCount,
-      halfDays: halfdayCount,
-      absent: absentCount,
-      lateToday: lateCount,
-      totalEmployees: filteredEmployees.length,
-      activeEmployees: filteredEmployees.filter(emp => emp.status === 'active').length,
-      totalBreaks: totalBreaks,
-      totalHolidays: totalHolidays,
-      totalLeavesTaken: totalLeavesTaken,
-      monthlyPresent,
-      monthlyLeave,
-      monthlyHalfday,
-      monthlyAbsent,
-      monthlyLate,
-      monthlyAttendanceRate: filteredEmployees.length > 0 ? 
-        ((monthlyPresent / monthlyData.length) * 100).toFixed(1) : '0.0'
-    };
-  };
-
   const stats = calculateStats();
+
+  const monthlyStats = {
+    present: stats.monthlyPresent,
+    absent: stats.monthlyAbsent,
+    leave: stats.monthlyLeave,
+    halfday: stats.monthlyHalfday,
+    attendanceRate: stats.monthlyAttendanceRate,
+    workingDays: 22,
+    totalEmployees: stats.totalEmployees,
+    monthlyLate: stats.monthlyLate
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50 to-gray-100 p-6 relative overflow-hidden">
-      {/* Background Effects */}
       <div className="absolute inset-0 overflow-hidden">
         <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-blue-100 rounded-full mix-blend-multiply filter blur-3xl opacity-40 animate-pulse"></div>
         <div className="absolute top-1/3 right-1/4 w-80 h-80 bg-cyan-100 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-pulse animation-delay-1000"></div>
@@ -2711,30 +3857,42 @@ export function HrAttendancePage() {
       <div className="relative z-10">
         {/* Header */}
         <div className="mb-8">
-          <div className="flex items-center justify-between">
+          <div className="flex justify-between items-center">
             <div>
-              <h1 className="text-2xl font-bold text-gray-900">HR Attendance Management</h1>
+              <h1 className="text-2xl font-bold text-gray-900">
+                {employeeView === 'detail' && selectedEmployee 
+                  ? `${selectedEmployee.name}'s Attendance` 
+                  : 'HR Attendance Management'
+                }
+              </h1>
               <p className="text-gray-600">
                 {employeeView === 'detail' && selectedEmployee 
-                  ? `Viewing ${selectedEmployee.name}'s attendance` 
+                  ? `Comprehensive attendance records and performance metrics` 
                   : 'Track attendance, breaks, holidays, and employee leaves'
                 }
               </p>
             </div>
-            <div className="flex items-center space-x-3">
-              <div className="flex items-center px-4 py-2 bg-white rounded-xl border border-gray-200">
-                <Crown className="h-5 w-5 text-yellow-500 mr-2" />
-                <span className="text-sm font-medium text-gray-700">HR Administrator</span>
+            <div className="text-right">
+              <div className="flex items-center gap-2 text-sm text-gray-600">
+                <Clock className="h-4 w-4" />
+                {new Date().toLocaleTimeString()}
+              </div>
+              <div className="text-xs text-gray-500">
+                {new Date().toLocaleDateString('en-US', { 
+                  weekday: 'long', 
+                  year: 'numeric', 
+                  month: 'long', 
+                  day: 'numeric' 
+                })}
               </div>
             </div>
           </div>
         </div>
 
-        {/* Navigation Tabs */}
         {employeeView === 'list' && (
           <>
             <div className="flex space-x-1 bg-white rounded-2xl p-2 border border-gray-200 shadow-sm mb-8">
-              {['overview', 'employees', 'breaks', 'holidays', 'leaves'].map(tab => (
+              {['overview', 'employees'].map(tab => (
                 <button
                   key={tab}
                   onClick={() => setActiveTab(tab)}
@@ -2749,9 +3907,7 @@ export function HrAttendancePage() {
               ))}
             </div>
 
-            {/* Quick Stats Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-              {/* Present Today */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 mb-8">
               <div className="bg-white rounded-2xl p-6 border border-gray-200 shadow-sm hover:shadow-md transition-all duration-300">
                 <div className="flex items-center justify-between mb-4">
                   <h3 className="text-sm font-medium text-gray-600">Present Today</h3>
@@ -2764,7 +3920,6 @@ export function HrAttendancePage() {
                 </p>
               </div>
 
-              {/* On Leave */}
               <div className="bg-white rounded-2xl p-6 border border-gray-200 shadow-sm hover:shadow-md transition-all duration-300">
                 <div className="flex items-center justify-between mb-4">
                   <h3 className="text-sm font-medium text-gray-600">On Leave</h3>
@@ -2777,7 +3932,6 @@ export function HrAttendancePage() {
                 </p>
               </div>
 
-              {/* Monthly Attendance */}
               <div className="bg-white rounded-2xl p-6 border border-gray-200 shadow-sm hover:shadow-md transition-all duration-300">
                 <div className="flex items-center justify-between mb-4">
                   <h3 className="text-sm font-medium text-gray-600">Monthly Rate</h3>
@@ -2790,7 +3944,6 @@ export function HrAttendancePage() {
                 </p>
               </div>
 
-              {/* Late Arrivals */}
               <div className="bg-white rounded-2xl p-6 border border-gray-200 shadow-sm hover:shadow-md transition-all duration-300">
                 <div className="flex items-center justify-between mb-4">
                   <h3 className="text-sm font-medium text-gray-600">Late Today</h3>
@@ -2802,36 +3955,69 @@ export function HrAttendancePage() {
                   Late arrivals
                 </p>
               </div>
+
+              {/* New Uninform card */}
+              <div className="bg-white rounded-2xl p-6 border border-gray-200 shadow-sm hover:shadow-md transition-all duration-300">
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-sm font-medium text-gray-600">Uninform</h3>
+                  <UserX className="h-5 w-5 text-red-500" />
+                </div>
+                <div className="text-2xl font-bold text-gray-900">{stats.unexplainedAbsences}</div>
+                <p className="text-sm text-red-600 mt-1 flex items-center">
+                  <AlertCircle className="h-4 w-4 mr-1" />
+                  Need follow-up
+                </p>
+              </div>
             </div>
 
-            {/* Tab Content */}
             {activeTab === 'overview' && (
-              <OverviewTab 
-                currentDate={currentDate}
-                setCurrentDate={setCurrentDate}
-                selectedDate={selectedDate}
-                setSelectedDate={setSelectedDate}
-                filters={filters}
-                handleFilterChange={handleFilterChange}
-                handleDateRangeChange={handleDateRangeChange}
-                getFilteredAttendanceData={getFilteredAttendanceData}
-                getFilteredEmployees={getFilteredEmployees}
-                stats={stats}
-                holidays={holidays}
-                onManualAttendance={handleManualAttendance}
-                attendanceSearch={attendanceSearch}
-                setAttendanceSearch={setAttendanceSearch}
-                attendanceFilter={attendanceFilter}
-                setAttendanceFilter={setAttendanceFilter}
-                attendanceSort={attendanceSort}
-                setAttendanceSort={setAttendanceSort}
-                getFilteredAndSortedAttendance={getFilteredAndSortedAttendance}
-                handleBulkStatusUpdate={handleBulkStatusUpdate}
-                handleQuickAttendance={handleQuickAttendance}
-                editingAttendance={editingAttendance}
-                setEditingAttendance={setEditingAttendance}
-                employees={employees}
-              />
+              <>
+                {/* Enhanced Monthly Overview with Chart.js */}
+                <MonthlyOverview 
+                  currentDate={currentDate}
+                  monthlyStats={monthlyStats}
+                  attendanceData={attendanceData}
+                  employees={employees}
+                  onFilterChange={setMonthlyFilter}
+                  activeFilter={monthlyFilter}
+                  timeRange={timeRange}
+                  onTimeRangeChange={setTimeRange}
+                  filters={filters}
+                  onCustomDateRangeChange={(range) => {
+                    handleDateRangeChange('start', range.start);
+                    handleDateRangeChange('end', range.end);
+                    setTimeRange('custom');
+                  }}
+                />
+
+                <OverviewTab 
+                  currentDate={currentDate}
+                  setCurrentDate={setCurrentDate}
+                  selectedDate={selectedDate}
+                  setSelectedDate={setSelectedDate}
+                  filters={filters}
+                  handleFilterChange={handleFilterChange}
+                  handleDateRangeChange={handleDateRangeChange}
+                  getFilteredAttendanceData={getFilteredAttendanceData}
+                  getFilteredEmployees={getFilteredEmployees}
+                  stats={stats}
+                  holidays={holidays}
+                  attendanceSearch={attendanceSearch}
+                  setAttendanceSearch={setAttendanceSearch}
+                  attendanceFilter={attendanceFilter}
+                  setAttendanceFilter={setAttendanceFilter}
+                  attendanceSort={attendanceSort}
+                  setAttendanceSort={setAttendanceSort}
+                  getFilteredAndSortedAttendance={getFilteredAndSortedAttendance}
+                  editingAttendance={editingAttendance}
+                  setEditingAttendance={setEditingAttendance}
+                  employees={employees}
+                  attendanceData={attendanceData}
+                  onMarkAsExplained={handleMarkAsExplained}
+                  onSendReminder={handleSendReminder}
+                  onUpdateAttendanceNotes={handleUpdateAttendanceNotes}
+                />
+              </>
             )}
             {activeTab === 'employees' && (
               <EmployeeListView 
@@ -2864,24 +4050,9 @@ export function HrAttendancePage() {
                 onDeleteBreak={handleDeleteBreak}
               />
             )}
-            {activeTab === 'holidays' && (
-              <HolidaysManagement 
-                holidays={holidays}
-                onAddHoliday={handleAddHoliday}
-                onDeleteHoliday={handleDeleteHoliday}
-              />
-            )}
-            {activeTab === 'leaves' && (
-              <LeavesSummary 
-                employees={employees} 
-                employeeLeaves={employeeLeaves}
-                onApproveLeave={handleApproveLeave}
-              />
-            )}
           </>
         )}
 
-        {/* Employee Detail View */}
         {employeeView === 'detail' && selectedEmployee && (
           <EmployeeDetailView 
             employee={selectedEmployee} 
@@ -2889,12 +4060,12 @@ export function HrAttendancePage() {
             attendanceData={attendanceData}
             holidays={holidays}
             employeeLeaves={employeeLeaves}
-            onManualAttendance={handleManualAttendance}
+            onMarkAsExplained={handleMarkAsExplained}
+            onUpdateAttendanceNotes={handleUpdateAttendanceNotes}
           />
         )}
       </div>
 
-      {/* Modals */}
       <AddEmployeeModal
         isOpen={isAddEmployeeModalOpen}
         onClose={() => {
@@ -2905,23 +4076,6 @@ export function HrAttendancePage() {
         editingEmployee={editingEmployee}
       />
 
-      {/* Edit Attendance Modal */}
-      {editingAttendance && (
-        <EditAttendanceModal
-          employee={employees.find(emp => emp.id === editingAttendance)}
-          attendance={attendanceData.find(att => 
-            att.employeeId === editingAttendance && att.date === selectedDate
-          )}
-          date={selectedDate}
-          onSave={(newStatus, checkIn, checkOut) => {
-            handleManualAttendance(editingAttendance, selectedDate, newStatus, checkIn, checkOut);
-            setEditingAttendance(null);
-          }}
-          onClose={() => setEditingAttendance(null)}
-        />
-      )}
-
-      {/* Notifications */}
       <NotificationContainer notifications={notifications} />
 
       <style jsx>{`
