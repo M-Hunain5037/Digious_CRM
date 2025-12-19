@@ -7,6 +7,7 @@ import ProtectedRoute from './components/ProtectedRoute';
 // Login & Signup
 import LoginPage from './components/LoginPage';
 import SignUpPage from './components/SignUpPage';
+import ChangePasswordPage from './components/ChangePasswordPage';
 import UnauthorizedPage from './pages/UnauthorizedPage';
 
 // Admin Pages
@@ -22,6 +23,7 @@ import AdminSalesManagement from './pages/SuperAdmin/AdminSalesManagement';
 import HRDashboard from './pages/HR/HRDashboard';
 import HrAttendance from './pages/HR/HrAttendance';
 import EmployeeManagement from './pages/HR/EmployeeManagement';
+import EmployeeOnboarding from './pages/HR/EmployeeOnboarding';
 import ApplicationsMemos from './pages/HR/ApplicationsMemos';
 
 // Employee Pages
@@ -39,6 +41,7 @@ function App() {
             {/* Public routes */}
             <Route path="/login" element={<LoginPage />} />
             <Route path="/signup" element={<SignUpPage />} />
+            <Route path="/change-password" element={<ChangePasswordPage />} />
             
             {/* Unauthorized page */}
             <Route path="/unauthorized" element={<UnauthorizedPage />} />
@@ -107,6 +110,14 @@ function App() {
               element={
                 <ProtectedRoute requiredRole="hr">
                   <EmployeeManagement />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/hr/onboarding"
+              element={
+                <ProtectedRoute requiredRole="hr">
+                  <EmployeeOnboarding />
                 </ProtectedRoute>
               }
             />

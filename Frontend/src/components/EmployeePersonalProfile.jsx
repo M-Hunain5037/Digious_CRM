@@ -315,30 +315,36 @@ const EmployeePersonalProfile = ({ employeeId, onBack }) => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50 to-gray-100 p-4 md:p-6">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 p-4 md:p-8 relative overflow-hidden">
+      {/* Background decoration */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute top-0 right-0 w-96 h-96 bg-blue-200 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-pulse"></div>
+        <div className="absolute bottom-0 left-0 w-96 h-96 bg-purple-200 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-pulse animation-delay-2000"></div>
+      </div>
+
       {/* Header */}
-      <div className="mb-6">
+      <div className="mb-8 relative z-10">
         <div className="flex items-center justify-between">
           <div>
             {onBack && (
               <button
                 onClick={onBack}
-                className="flex items-center text-gray-600 hover:text-gray-900 mb-2"
+                className="flex items-center text-gray-600 hover:text-blue-600 mb-3 font-medium transition-colors"
               >
                 ← Back to Employees
               </button>
             )}
-            <h1 className="text-2xl font-bold text-gray-900">Employee Personal Profile</h1>
+            <h1 className="text-4xl font-extrabold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mb-2">Employee Personal Profile</h1>
             <p className="text-gray-600">Complete personal and professional information</p>
           </div>
           <div className="flex items-center gap-3">
-            <button className="p-2 hover:bg-gray-100 rounded-xl">
+            <button className="p-3 hover:bg-blue-50 rounded-xl transition-colors border border-gray-200 hover:border-blue-300">
               <Printer className="h-5 w-5 text-gray-600" />
             </button>
-            <button className="p-2 hover:bg-gray-100 rounded-xl">
+            <button className="p-3 hover:bg-blue-50 rounded-xl transition-colors border border-gray-200 hover:border-blue-300">
               <Share2 className="h-5 w-5 text-gray-600" />
             </button>
-            <button className="px-4 py-2 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition duration-200 flex items-center gap-2">
+            <button className="px-5 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-xl hover:from-blue-700 hover:to-purple-700 transition-all shadow-md hover:shadow-lg flex items-center gap-2 font-semibold">
               <Download className="h-4 w-4" />
               Export Profile
             </button>
@@ -346,14 +352,14 @@ const EmployeePersonalProfile = ({ employeeId, onBack }) => {
         </div>
       </div>
 
-      <div className="flex flex-col lg:flex-row gap-6">
+      <div className="flex flex-col lg:flex-row gap-6 relative z-10">
         {/* Left Sidebar - Profile Summary */}
         <div className="lg:w-1/3">
-          <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-6 mb-6">
+          <div className="bg-gradient-to-br from-white to-blue-50 rounded-3xl border-2 border-blue-100 shadow-xl p-8 mb-6 hover:shadow-2xl transition-all">
             <div className="text-center">
-              <div className="relative w-32 h-32 mx-auto mb-4">
-                <div className="w-full h-full rounded-full border-4 border-blue-100 overflow-hidden">
-                  <div className="w-full h-full bg-gradient-to-br from-blue-100 to-blue-200 flex items-center justify-center">
+              <div className="relative w-36 h-36 mx-auto mb-5">
+                <div className="w-full h-full rounded-full border-4 border-blue-200 overflow-hidden shadow-lg">
+                  <div className="w-full h-full bg-gradient-to-br from-blue-200 to-purple-200 flex items-center justify-center">
                     {employee.basicInfo.profileImage ? (
                       <img 
                         src={employee.basicInfo.profileImage} 
@@ -361,76 +367,84 @@ const EmployeePersonalProfile = ({ employeeId, onBack }) => {
                         className="w-full h-full object-cover"
                       />
                     ) : (
-                      <span className="text-gray-700 text-4xl font-bold">
+                      <span className="text-blue-900 text-5xl font-extrabold">
                         {employee.basicInfo.name.split(' ').map(n => n[0]).join('')}
                       </span>
                     )}
                   </div>
                 </div>
-                <button className="absolute bottom-2 right-2 p-2 bg-blue-600 text-white rounded-full hover:bg-blue-700">
+                <button className="absolute bottom-1 right-1 p-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-full hover:from-blue-700 hover:to-purple-700 shadow-lg hover:scale-110 transition-transform">
                   <Camera className="h-4 w-4" />
                 </button>
               </div>
               
-              <h2 className="text-xl font-bold text-gray-900">{employee.basicInfo.name}</h2>
-              <p className="text-gray-600">{employee.professionalInfo.role}</p>
-              <div className="mt-2">
-                <span className={`px-3 py-1 text-sm rounded-full ${employee.professionalInfo.employmentStatus === 'Active' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
+              <h2 className="text-2xl font-extrabold text-gray-900 mb-1">{employee.basicInfo.name}</h2>
+              <p className="text-gray-600 font-medium mb-3">{employee.professionalInfo.role}</p>
+              <div className="mt-3">
+                <span className={`px-4 py-1.5 text-sm font-semibold rounded-full shadow-sm ${employee.professionalInfo.employmentStatus === 'Active' ? 'bg-gradient-to-r from-green-100 to-emerald-100 text-green-800 border-2 border-green-200' : 'bg-gradient-to-r from-red-100 to-rose-100 text-red-800 border-2 border-red-200'}`}>
                   {employee.professionalInfo.employmentStatus}
                 </span>
               </div>
             </div>
 
-            <div className="mt-6 space-y-4">
-              <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl">
-                <Mail className="h-5 w-5 text-gray-400" />
-                <div>
-                  <p className="text-sm text-gray-500">Work Email</p>
-                  <p className="font-medium">{employee.basicInfo.email}</p>
+            <div className="mt-8 space-y-3">
+              <div className="flex items-center gap-3 p-4 bg-gradient-to-r from-blue-50 to-cyan-50 rounded-xl border border-blue-200 hover:shadow-md transition-all">
+                <div className="bg-blue-500 rounded-lg p-2.5">
+                  <Mail className="h-5 w-5 text-white" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-xs text-gray-500 font-medium">Work Email</p>
+                  <p className="font-semibold text-gray-900 truncate">{employee.basicInfo.email}</p>
                 </div>
               </div>
-              <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl">
-                <Phone className="h-5 w-5 text-gray-400" />
-                <div>
-                  <p className="text-sm text-gray-500">Work Phone</p>
-                  <p className="font-medium">{employee.basicInfo.phone}</p>
+              <div className="flex items-center gap-3 p-4 bg-gradient-to-r from-green-50 to-emerald-50 rounded-xl border border-green-200 hover:shadow-md transition-all">
+                <div className="bg-green-500 rounded-lg p-2.5">
+                  <Phone className="h-5 w-5 text-white" />
+                </div>
+                <div className="flex-1">
+                  <p className="text-xs text-gray-500 font-medium">Work Phone</p>
+                  <p className="font-semibold text-gray-900">{employee.basicInfo.phone}</p>
                 </div>
               </div>
-              <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl">
-                <Briefcase className="h-5 w-5 text-gray-400" />
-                <div>
-                  <p className="text-sm text-gray-500">Employee ID</p>
-                  <p className="font-medium">{employee.basicInfo.employeeId}</p>
+              <div className="flex items-center gap-3 p-4 bg-gradient-to-r from-purple-50 to-pink-50 rounded-xl border border-purple-200 hover:shadow-md transition-all">
+                <div className="bg-purple-500 rounded-lg p-2.5">
+                  <Briefcase className="h-5 w-5 text-white" />
+                </div>
+                <div className="flex-1">
+                  <p className="text-xs text-gray-500 font-medium">Employee ID</p>
+                  <p className="font-semibold text-gray-900">{employee.basicInfo.employeeId}</p>
                 </div>
               </div>
-              <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl">
-                <Building className="h-5 w-5 text-gray-400" />
-                <div>
-                  <p className="text-sm text-gray-500">Department</p>
-                  <p className="font-medium">{employee.professionalInfo.department}</p>
+              <div className="flex items-center gap-3 p-4 bg-gradient-to-r from-orange-50 to-amber-50 rounded-xl border border-orange-200 hover:shadow-md transition-all">
+                <div className="bg-orange-500 rounded-lg p-2.5">
+                  <Building className="h-5 w-5 text-white" />
+                </div>
+                <div className="flex-1">
+                  <p className="text-xs text-gray-500 font-medium">Department</p>
+                  <p className="font-semibold text-gray-900">{employee.professionalInfo.department}</p>
                 </div>
               </div>
             </div>
 
             {/* Quick Stats */}
-            <div className="mt-6 pt-6 border-t border-gray-200">
-              <h4 className="font-semibold text-gray-900 mb-4">Quick Stats</h4>
+            <div className="mt-8 pt-6 border-t-2 border-gray-200">
+              <h4 className="font-bold text-gray-900 mb-5 text-lg">Quick Stats</h4>
               <div className="grid grid-cols-2 gap-3">
-                <div className="bg-blue-50 p-3 rounded-xl">
-                  <p className="text-sm text-blue-600">Performance</p>
-                  <p className="text-xl font-bold">{employee.performance.currentRating}/5.0</p>
+                <div className="bg-gradient-to-br from-blue-100 to-cyan-100 p-4 rounded-xl border-2 border-blue-200 hover:shadow-lg transition-all group">
+                  <p className="text-xs text-blue-700 font-semibold mb-1">Performance</p>
+                  <p className="text-2xl font-extrabold text-blue-900 group-hover:scale-110 transition-transform">{employee.performance.currentRating}/5.0</p>
                 </div>
-                <div className="bg-green-50 p-3 rounded-xl">
-                  <p className="text-sm text-green-600">Leave Balance</p>
-                  <p className="text-xl font-bold">{employee.leaveBalance.remaining} days</p>
+                <div className="bg-gradient-to-br from-green-100 to-emerald-100 p-4 rounded-xl border-2 border-green-200 hover:shadow-lg transition-all group">
+                  <p className="text-xs text-green-700 font-semibold mb-1">Leave Balance</p>
+                  <p className="text-2xl font-extrabold text-green-900 group-hover:scale-110 transition-transform">{employee.leaveBalance.remaining} days</p>
                 </div>
-                <div className="bg-purple-50 p-3 rounded-xl">
-                  <p className="text-sm text-purple-600">Experience</p>
-                  <p className="text-xl font-bold">{employee.professionalInfo.workExperience}</p>
+                <div className="bg-gradient-to-br from-purple-100 to-violet-100 p-4 rounded-xl border-2 border-purple-200 hover:shadow-lg transition-all group">
+                  <p className="text-xs text-purple-700 font-semibold mb-1">Experience</p>
+                  <p className="text-2xl font-extrabold text-purple-900 group-hover:scale-110 transition-transform">{employee.professionalInfo.workExperience}</p>
                 </div>
-                <div className="bg-orange-50 p-3 rounded-xl">
-                  <p className="text-sm text-orange-600">Certifications</p>
-                  <p className="text-xl font-bold">{employee.certifications.length}</p>
+                <div className="bg-gradient-to-br from-orange-100 to-amber-100 p-4 rounded-xl border-2 border-orange-200 hover:shadow-lg transition-all group">
+                  <p className="text-xs text-orange-700 font-semibold mb-1">Certifications</p>
+                  <p className="text-2xl font-extrabold text-orange-900 group-hover:scale-110 transition-transform">{employee.certifications.length}</p>
                 </div>
               </div>
             </div>
@@ -440,8 +454,8 @@ const EmployeePersonalProfile = ({ employeeId, onBack }) => {
         {/* Main Content */}
         <div className="lg:w-2/3">
           {/* Tabs */}
-          <div className="bg-white rounded-2xl border border-gray-200 shadow-sm mb-6 overflow-hidden">
-            <div className="border-b border-gray-200">
+          <div className="bg-white rounded-3xl border-2 border-gray-200 shadow-xl mb-6 overflow-hidden hover:shadow-2xl transition-all">
+            <div className="border-b-2 border-gray-200 bg-gradient-to-r from-gray-50 to-blue-50">
               <nav className="flex overflow-x-auto">
                 {tabs.map(tab => {
                   const Icon = tab.icon;
@@ -449,7 +463,11 @@ const EmployeePersonalProfile = ({ employeeId, onBack }) => {
                     <button
                       key={tab.id}
                       onClick={() => setActiveTab(tab.id)}
-                      className={`flex items-center gap-2 px-6 py-4 text-sm font-medium whitespace-nowrap ${activeTab === tab.id ? 'text-blue-600 border-b-2 border-blue-600' : 'text-gray-500 hover:text-gray-700'}`}
+                      className={`flex items-center gap-2 px-6 py-4 text-sm font-semibold whitespace-nowrap transition-all ${
+                        activeTab === tab.id 
+                          ? 'text-blue-600 bg-white border-b-4 border-blue-600 shadow-sm' 
+                          : 'text-gray-500 hover:text-gray-900 hover:bg-white/50'
+                      }`}
                     >
                       <Icon className="h-4 w-4" />
                       {tab.label}

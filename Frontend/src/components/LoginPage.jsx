@@ -53,50 +53,75 @@ const LoginPage = () => {
     if (Object.keys(newErrors).length === 0) {
       setIsLoading(true);
       try {
-        // Simulate API call
-        await new Promise(resolve => setTimeout(resolve, 1000));
+        console.log('🔐 Sending login request to backend...');
         
-        // Demo authentication - you can customize these credentials
-        const validCredentials = [
-          { email: 'admin@digious.com', password: 'admin123', role: 'admin' },
-          { email: 'hr@digious.com', password: 'hr123', role: 'hr' },
-          { email: 'employee@digious.com', password: 'emp123', role: 'employee' }
-        ];
-
-        const user = validCredentials.find(
-          cred => cred.email === formData.email && cred.password === formData.password
-        );
-
-        if (user) {
-          // Use the role from matched credentials or use the selected role
-          const userRole = user.role;
-          
-          // Login through AuthContext
-          login({
+        // Call the backend login API
+        const response = await fetch('http://localhost:5000/api/v1/auth/login', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
             email: formData.email,
-            name: formData.email.split('@')[0],
-            role: userRole
-          }, userRole);
-          
-          // Navigate based on role
-          switch(userRole) {
-            case 'admin':
-              navigate('/admin/dashboard');
-              break;
-            case 'hr':
-              navigate('/hr/dashboard');
-              break;
-            case 'employee':
-              navigate('/employee/dashboard');
-              break;
-            default:
-              navigate('/');
-          }
-        } else {
-          setErrors({ submit: 'Invalid email or password. Please try again.' });
+            password: formData.password
+          })
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+          console.error('❌ Login failed:', data.message);
+          setErrors({ submit: data.message || 'Invalid email or password. Please try again.' });
+          return;
+        }
+
+        console.log('✅ Login successful:', data);
+
+        const user = data.data.user;
+        const token = data.data.token;
+
+        // Check if password change is required
+        if (user.requestPasswordChange) {
+          console.log('⚠️ Password change required on first login');
+          // Store temp token and redirect to password change
+          localStorage.setItem('tempToken', token);
+          localStorage.setItem('tempUser', JSON.stringify(user));
+          navigate('/change-password');
+          return;
+        }
+
+        // Login through AuthContext with token
+        login({
+          id: user.id,
+          email: user.email,
+          name: user.name,
+          role: user.role,
+          department: user.department,
+          position: user.position,
+          employeeId: user.employeeId,
+          phone: user.phone
+        }, user.role, token);
+        
+        // Navigate based on role
+        switch(user.role) {
+          case 'admin':
+            navigate('/admin/dashboard');
+            break;
+          case 'hr':
+            navigate('/hr/dashboard');
+            break;
+          case 'employee':
+            navigate('/employee/dashboard');
+            break;
+          case 'super_admin':
+            navigate('/super-admin/dashboard');
+            break;
+          default:
+            navigate('/');
         }
       } catch (error) {
-        setErrors({ submit: 'Login failed. Please try again.' });
+        console.error('❌ Login error:', error);
+        setErrors({ submit: error.message || 'Login failed. Please try again.' });
       } finally {
         setIsLoading(false);
       }

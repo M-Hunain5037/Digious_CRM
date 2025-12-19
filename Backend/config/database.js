@@ -1,36 +1,42 @@
-const pgPromise = require('pg-promise');
+const { Pool } = require('pg');
 const dotenv = require('dotenv');
 
 dotenv.config();
 
-// PostgreSQL Connection Options
-const initOptions = {
-  // Initialization options
-};
-
-const pgp = pgPromise(initOptions);
-
-// Database connection configuration
-const cn = {
+// PostgreSQL Connection Pool
+const pool = new Pool({
   host: process.env.DB_HOST || 'localhost',
   port: process.env.DB_PORT || 5432,
   database: process.env.DB_NAME || 'digious_crm',
-  user: process.env.DB_USER || 'digious_user',
-  password: process.env.DB_PASSWORD || 'digious123',
-};
+  user: process.env.DB_USER || 'postgres',
+  password: process.env.DB_PASSWORD || '',
+  max: 20,
+  idleTimeoutMillis: 30000,
+  connectionTimeoutMillis: 2000,
+});
 
-// Create database instance
-const db = pgp(cn);
+console.log(`\n🗄️  PostgreSQL Connection Pool Configuration:`);
+console.log(`   Host: ${process.env.DB_HOST || 'localhost'}`);
+console.log(`   Port: ${process.env.DB_PORT || 5432}`);
+console.log(`   Database: ${process.env.DB_NAME || 'digious_crm'}`);
+console.log(`   User: ${process.env.DB_USER || 'postgres'}`);
+console.log(`   Max Connections: 20`);
+
+pool.on('error', (err) => {
+  console.error('❌ Unexpected error on idle client:', err);
+});
+
+pool.on('connect', () => {
+  console.log('✅ PostgreSQL client connected to pool');
+});
 
 // Test the connection
-db.connect()
-  .then(obj => {
-    console.log('✓ Database connection successful');
-    obj.done(); // release the connection
-  })
-  .catch(error => {
-    console.error('✗ Database connection error:', error.message);
-    process.exit(1);
-  });
+pool.query('SELECT NOW()', (err, res) => {
+  if (err) {
+    console.error('❌ Database connection test failed:', err.message);
+  } else {
+    console.log(`✅ Database is ready - Current Time: ${res.rows[0].now}`);
+  }
+});
 
-module.exports = db;
+module.exports = pool;

@@ -19,32 +19,34 @@ export const DashboardHeader = ({ title, subtitle }) => {
   };
 
   return (
-    <div className="bg-white border-b border-gray-200 px-6 py-4">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900">{title}</h1>
-          {subtitle && <p className="text-gray-600 mt-1">{subtitle}</p>}
-        </div>
-
-        <div className="flex items-center space-x-4">
-          <div className="text-right">
-            <p className="text-sm font-medium text-gray-900">{user?.name || user?.email || 'User'}</p>
-            <p className={`text-xs font-semibold bg-gradient-to-r ${roleInfo[role]?.color} bg-clip-text text-transparent`}>
-              {roleInfo[role]?.label}
-            </p>
+    <div className="bg-white border-b border-gray-200 px-8 py-5 shadow-sm">
+      <div className="max-w-7xl mx-auto">
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-4xl font-bold text-gray-900 tracking-tight">{title}</h1>
+            {subtitle && <p className="text-gray-500 mt-2 text-base font-medium">{subtitle}</p>}
           </div>
 
-          <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-cyan-600 rounded-full flex items-center justify-center text-white font-semibold">
-            {String(user?.name || user?.email || 'U').charAt(0).toUpperCase()}
-          </div>
+          <div className="flex items-center space-x-6">
+            <div className="text-right pr-6 border-r border-gray-200">
+              <p className="text-sm font-bold text-gray-900">{user?.name || user?.email || 'User'}</p>
+              <p className={`text-xs font-semibold bg-gradient-to-r ${roleInfo[role]?.color} bg-clip-text text-transparent mt-1`}>
+                {roleInfo[role]?.label}
+              </p>
+            </div>
 
-          <button
-            onClick={handleLogout}
-            className="p-2 hover:bg-gray-100 rounded-lg transition"
-            title="Logout"
-          >
-            <LogOut className="w-5 h-5 text-gray-600 hover:text-red-600" />
-          </button>
+            <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-cyan-600 rounded-full flex items-center justify-center text-white font-bold text-lg shadow-md">
+              {String(user?.name || user?.email || 'U').charAt(0).toUpperCase()}
+            </div>
+
+            <button
+              onClick={handleLogout}
+              className="p-3 hover:bg-gray-100 rounded-lg transition duration-200 group"
+              title="Logout"
+            >
+              <LogOut className="w-6 h-6 text-gray-600 group-hover:text-red-600 transition" />
+            </button>
+          </div>
         </div>
       </div>
     </div>
@@ -80,17 +82,21 @@ export const RoleBasedNav = ({ role }) => {
   const items = navItems[role] || [];
 
   return (
-    <nav className="flex space-x-1 border-b border-gray-200 px-6">
-      {items.map((item) => (
-        <button
-          key={item.id}
-          onClick={() => navigate(item.path)}
-          className="px-4 py-4 text-sm font-medium text-gray-700 hover:text-blue-600 hover:border-b-2 hover:border-blue-600 transition border-b-2 border-transparent"
-        >
-          <span className="mr-2">{item.icon}</span>
-          {item.label}
-        </button>
-      ))}
+    <nav className="bg-white border-b border-gray-200 px-8 py-0">
+      <div className="max-w-7xl mx-auto">
+        <div className="flex space-x-2">
+          {items.map((item) => (
+            <button
+              key={item.id}
+              onClick={() => navigate(item.path)}
+              className="px-6 py-4 text-sm font-semibold text-gray-700 hover:text-blue-600 transition-colors duration-200 border-b-3 border-transparent hover:border-blue-600 whitespace-nowrap"
+            >
+              <span className="mr-2 text-lg">{item.icon}</span>
+              {item.label}
+            </button>
+          ))}
+        </div>
+      </div>
     </nav>
   );
 };
